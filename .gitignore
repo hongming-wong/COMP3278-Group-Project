@@ -1,0 +1,5 @@
+.DS_Store
+.idea
+back-end/.idea/
+back-end/__pycache__/
+front-end/node_modules/
