@@ -1,5 +1,5 @@
 from backend_func import *
-
+import subprocess
 
 """Constants defining login status"""
 SUCCESS = 0
@@ -20,6 +20,7 @@ def accountOwner(accountNo, loginStatus):
 def authentication():
     """forks another process to perform authentication,
     and wait till authentication is complete or time is up"""
+    # subprocess.run("python faces_gui.py")
     # t_end = time.time() + 2
     # while time.time() < t_end:
     #     pass

@@ -2,7 +2,7 @@ import mysql.connector
 
 host = 'localhost'
 user = 'root'
-passwd = 'Hm12345678910'
+passwd = '12345'
 
 myconn = mysql.connector.connect(host=host, user=user, passwd=passwd, database="facerecognition")
 cursor = myconn.cursor()
