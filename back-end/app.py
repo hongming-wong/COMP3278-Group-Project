@@ -122,21 +122,17 @@ def MakeTransfer():
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
     toAccount = request.form.get('to')
-
     message = request.form.get('message')
-
-    if toAccount == fromAccount:
-        return "Transfer unsuccessful: to and from account are the same"
 
     if amount is None or fromAccount is None or toAccount is None:
         return "Transfer unsuccessful: One or more details not specified"
 
-    amount = int(amount)
-    fromAccount = int(fromAccount)
-    toAccount = int(toAccount)
+    if toAccount == fromAccount:
+        return "Transfer unsuccessful: to and from account are the same"
 
     isOwnerOne = accountOwner(fromAccount, loginStatus)
     isOwnerTwo = accountOwner(toAccount, loginStatus)
+    amount = int(amount)
     if not isOwnerOne or not isOwnerTwo:
         return "Transfer unsuccessful: account(s) don't belong to user "
 
@@ -160,9 +156,6 @@ def MakeTransaction():
     if amount is None or fromAccount is None or toAccount is None:
         return "Transfer unsuccessful: One or more details not specified"
 
-    amount = int(amount)
-    fromAccount = int(fromAccount)
-    toAccount = int(toAccount)
     isOwnerOne = accountOwner(fromAccount, loginStatus)
     isOwnerTwo = accountOwner(toAccount, loginStatus)
 
@@ -172,10 +165,17 @@ def MakeTransaction():
         return "Transfer unsuccessful: either account doesn't exist or account belongs to current user. For internal transfer, please use transfer endpoint."
     if not is_current_account(fromAccount):
         return "Transferring account must be a current account!"
-
     date = datetime.datetime.now()
-    transaction(current_account_num=fromAccount, saving_account_num=toAccount,
-             amount=amount, message=message, year=date.year, month=date.month, day=date.strftime("%H-%M"))
+    transaction(
+        date.year,
+        date.month,
+        date.day,
+        date.strftime("%H-%M"),
+        amount,
+        message,
+        fromAccount,
+        toAccount
+    )
     return "Transaction successful"
 
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ function App() {
 		try {
 			const res = await axios({
 				method: "post",
-				url: "http://localhost:5000/Transaction",
+				url: "http://localhost:5000/Transfer",
 				data: f,
 			});
 			setRandom(res.data);
