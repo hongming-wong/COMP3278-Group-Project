@@ -1,5 +1,12 @@
 from backend_func import *
-import subprocess
+from face_capture import *
+from faces_gui import *
+from train import *
+import time
+import datetime
+import threading
+from multiprocessing import Process, Pipe
+
 
 """Constants defining login status"""
 SUCCESS = 0
@@ -18,14 +25,8 @@ def accountOwner(accountNo, loginStatus):
     return False
 
 def authentication():
-    """forks another process to perform authentication,
-    and wait till authentication is complete or time is up"""
-    # subprocess.run("python faces_gui.py")
-    # t_end = time.time() + 2
-    # while time.time() < t_end:
-    #     pass
-    # return "Done"
-    return 1
+    FR = FaceRecognition()
+    return FR.authenticate()
 
 class LoginMethods():
     def __init__(self):
@@ -68,3 +69,63 @@ class LoginMethods():
             return NO_USER
         self.currentUser = None
         return SUCCESS
+
+class FaceRecognition:
+    def __init__(self):
+        self.customerID = False
+        self.name = False
+
+    def collectData(self, name):
+        """
+        Opens the camera and collect images.
+        Then trains the model.
+        """
+        face_capture(name)
+        train()
+
+    def setData(self, arg1, arg2):
+        self.customerID = arg1
+        self.name = arg2
+
+    def authenticate(self):
+        """
+        forks another process to perform authentication,
+        and wait till authentication is complete or time is up
+
+        I tried multithreading but it doesn't work with consistency. So creating
+        another process is the best way to go.
+        """
+
+        # gui = threading.Thread(target=verify, args=(self.setData, ))
+        # gui.start()
+        # gui.join()
+
+        parent_conn, child_conn = Pipe()
+        gui = Process(target=verify, args=(child_conn,))
+        print("Starting authentication")
+        gui.start()
+        # waiting till authentication is over
+        gui.join()
+        self.customerID, self.name = parent_conn.recv()
+        parent_conn.close()
+        print("Done")
+        if self.customerID is False or self.name is False:
+            return False, False
+
+        today = datetime.datetime.today()
+        now = datetime.datetime.now()
+        date = today.strftime("%Y-%m-%d")
+        current_time = now.strftime("%H-%M")
+
+        update = "UPDATE Customer SET login_date=%s WHERE customerID=%s"
+        val = (date, self.customerID)
+        cursor.execute(update, val)
+        update = "UPDATE Customer SET login_time=%s WHERE customerID=%s"
+        val = (current_time, self.customerID)
+        cursor.execute(update, val)
+        myconn.commit()
+        return self.customerID, self.name
+
+if __name__ == "__main__":
+    authentication()
+

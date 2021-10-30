@@ -1,5 +1,4 @@
 from flask import Flask, request, Response
-from backend_func import *
 from server_func import *
 import json
 import datetime
@@ -25,13 +24,15 @@ def LoginEndpoint():
     If another user is logged in, or user doesn't exist, return response status = 401.
     """
     if request.method == 'POST':
-        customerID = authentication()
-        status = loginStatus.LogIn(customerID)
-        if status == SUCCESS or status == LOGGED_IN:
-            customer = get_customer_details(customerID)
-            jsonString = json.dumps(customer[:3])
-            return jsonString
+        if loginStatus.GetCredentials() is LOGGED_IN:
+            return "User is already logged in"
 
+        customerID, customerName = authentication()
+        if customerID is not False:
+            status = loginStatus.LogIn(customerID)
+            if status == SUCCESS or status == LOGGED_IN:
+                jsonString = json.dumps([customerID, customerName])
+                return jsonString
         return Response("User doesn't exist", status=401)
 
 
@@ -178,4 +179,4 @@ def MakeTransaction():
     return "Transaction successful"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

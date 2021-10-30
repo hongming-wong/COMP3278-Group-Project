@@ -28,8 +28,9 @@ function App() {
 				username: "dummy",
 			});
 			console.log(res.data);
-			setCurrentUser(res.data[0]);
+			setCurrentUser(res.data[1]);
 		} catch (err) {
+			setCurrentUser("Login failed");
 			console.log(err);
 		}
 	};
