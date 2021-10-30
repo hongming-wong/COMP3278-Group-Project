@@ -25,10 +25,8 @@ def get_all_accounts(customer_id, type_filter=None):
         select = 'SELECT account_number, (CASE WHEN account_number IN (SELECT * FROM CurrentAccount) THEN "Current" ' \
                  f'ELSE "Saving" END) FROM Account WHERE customerID = "{customer_id}" ORDER BY account_number; '
     else:
-        if type_filter == 'saving':
-            select = 'SELECT * FROM CurrentAccount;'
-        else:
-            select = 'SELECT * FROM SavingAccount;'
+        select = f'SELECT account_number FROM Account WHERE customerID = {customer_id} AND account_number ' \
+                 f'IN (SELECT * FROM {'SavingAccount' if type_filter == 'saving' else 'CurrentAccount'});'
     cursor.execute(select)
     return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0], cursor.fetchall()))
 
