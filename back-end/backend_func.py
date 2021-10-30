@@ -26,7 +26,7 @@ def get_all_accounts(customer_id, type_filter=None):
                  f'ELSE "Saving" END) FROM Account WHERE customerID = "{customer_id}" ORDER BY account_number; '
     else:
         select = f'SELECT account_number FROM Account WHERE customerID = {customer_id} AND account_number ' \
-                 f'IN (SELECT * FROM {'SavingAccount' if type_filter == 'saving' else 'CurrentAccount'});'
+                 f'IN (SELECT * FROM {"SavingAccount" if type_filter == "saving" else "CurrentAccount"});'
     cursor.execute(select)
     return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0], cursor.fetchall()))
 

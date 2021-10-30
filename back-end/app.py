@@ -60,6 +60,8 @@ def accounts():
     If filter, accountType has to be saving or current.
     Else it will return an error response.
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return Response("Permission Denied", status= 403)
     accountType = request.args.get('accountType')
     if accountType is None:
         allAccount = get_all_accounts(loginStatus.currentUser)
@@ -171,7 +173,7 @@ def MakeTransaction():
         return "Transferring account must be a current account!"
 
     date = datetime.datetime.now()
-    transaction(current_account_num=toAccount, saving_account_num=fromAccount,
+    transaction(current_account_num=fromAccount, saving_account_num=toAccount,
              amount=amount, message=message, year=date.year, month=date.month, day=date.strftime("%H-%M"))
     return "Transaction successful"
 
