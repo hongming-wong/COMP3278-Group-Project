@@ -1,4 +1,5 @@
 import mysql.connector
+import uuid
 
 host = 'localhost'
 user = 'root'
@@ -180,6 +181,8 @@ def transfer(year=None, month=None, day=None, time=None, amount=None, message=No
         cursor.execute(update_from_account)
         cursor.execute(update_to_account)
         myconn.commit();
+        return True;
+    return False;
 
 
 # example to test transfer function
@@ -202,19 +205,27 @@ def transfer(year=None, month=None, day=None, time=None, amount=None, message=No
 def transaction(year=None, month=None, day=None, time=None, amount=None, message=None, saving_account_num=None,
                 current_account_num=None):
     if get_balance(current_account_num) >= amount:
-        cursor.execute('SELECT MAX(transactionID) FROM Transaction')
-        max_trans_id = int(next(iter(cursor.fetchall()), [1])[0])
-        insert = 'INSERT INTO Transaction VALUES ( ' \
-                 f'"{max_trans_id + 1}", "{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", ' \
+        # choose the max + 1 as the key from the database doesn't work
+        # because our key is varchar, this means mysql will compare first char
+        # which means "10" will be ordered before "9".
+        # therefore a randomly generated key will work better here.
+        # - Hong Ming
+        key = str(uuid.uuid4())[:10]
+        insert = 'INSERT INTO Transaction VALUES (' \
+                 f' "{key}", "{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", ' \
                  f'"{saving_account_num}", "{current_account_num}" ); '
-        update_saving_account = 'UPDATE Account SET balance = balance -' \
-                                f'"{amount}" WHERE account_number = "{current_account_num}";'
-        update_current_account = 'UPDATE Account SET balance = balance +' \
-                                 f'"{amount}" WHERE account_number = "{saving_account_num}";'
-        cursor.execute(insert)
+        update_saving_account = 'UPDATE Account SET balance = balance +' \
+                                f'"{amount}" WHERE account_number = "{saving_account_num}";'
+        update_current_account = 'UPDATE Account SET balance = balance -' \
+                                 f'"{amount}" WHERE account_number = "{current_account_num}";'
         cursor.execute(update_saving_account)
         cursor.execute(update_current_account)
+        cursor.execute(insert)
         myconn.commit()
+        # If transaction is success
+        return True
+    # If transaction failed
+    return False
 
 # example to test transaction function
 # transaction('2021', '11', '26', '11-05', 10, 'Hellooo', '6', '2')
@@ -228,3 +239,6 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
 
 # testTransaction()
 ########################################################################################################################
+
+if __name__ == "__main__":
+    transaction("2022", "11", "26", "11-05", 49, "cunt", "6", "2")

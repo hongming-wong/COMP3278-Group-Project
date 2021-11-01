@@ -115,9 +115,10 @@ def transactions():
 @app.route('/Transfer', methods=["POST"])
 def MakeTransfer():
     """
-    Handles transfer from one account to another.
-    Only valid if the transferer and receiver belong to the current user.
-    Parameters must be specified with form.
+    IMPORTANT:
+    1. transferring from one account to another must involve one current account, and one saving account.
+    2. Both accounts have to belong to the same owner.
+    3. Parameters must be specified with form.
     """
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
@@ -132,22 +133,36 @@ def MakeTransfer():
 
     isOwnerOne = accountOwner(fromAccount, loginStatus)
     isOwnerTwo = accountOwner(toAccount, loginStatus)
-    amount = int(amount)
+
     if not isOwnerOne or not isOwnerTwo:
         return "Transfer unsuccessful: account(s) don't belong to user "
 
+    if is_current_account(isOwnerOne) and is_current_account(toAccount):
+        return "Transfer unsuccessful: Both accounts must be of different types."
+
+    amount = int(amount)
+    if amount <= 0:
+        return "Transfer unsuccessful: amount has to be greater than 0"
     date = datetime.datetime.now()
-    transfer(from_account_num=fromAccount, to_account_num=toAccount,
-             amount=amount, message=message, year=date.year, month=date.month, day = date.day, time=date.strftime("%H-%M"))
+    result = transfer(from_account_num=fromAccount,
+             to_account_num=toAccount,
+             amount=amount,
+             message=message,
+             year=str(date.year),
+             month=str(date.month),
+             day = str(date.day),
+             time=date.strftime("%H-%M"))
+    if not result:
+        return "Transfer unsuccessful: insufficient amount"
     return "Transfer successful"
 
 @app.route('/Transaction', methods=["POST"])
 def MakeTransaction():
     """
-    Handles transaction from one account to another.
-    Only valid if fromAccount belongs to owner
-    and toAccount belongs to someone else.
-    Parameters must be specified with form.
+    Handles transaction from one account to another
+    1. fromAccount has to be a current account, while toAccount must be a savings account
+    2. Only valid if fromAccount belongs to owner and toAccount belongs to someone else.
+    2. Parameters must be specified with form.
     """
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
@@ -158,24 +173,36 @@ def MakeTransaction():
 
     isOwnerOne = accountOwner(fromAccount, loginStatus)
     isOwnerTwo = accountOwner(toAccount, loginStatus)
+    amount = int(amount)
+
+    if amount <= 0:
+        return "Transaction unsuccessful: Transfer amount has to be greater than 0"
 
     if not isOwnerOne:
-        return "Transfer unsuccessful: account don't belong to owner"
+        return "Transaction unsuccessful: account don't belong to owner"
     if isOwnerTwo:
-        return "Transfer unsuccessful: either account doesn't exist or account belongs to current user. For internal transfer, please use transfer endpoint."
+        return "Transaction unsuccessful: either account doesn't exist or account belongs to current user. " \
+               "For internal transfer, please use transfer endpoint."
+
     if not is_current_account(fromAccount):
-        return "Transferring account must be a current account!"
+        return "Transaction unsuccessful: fromAccount must be a current account!"
+
+    if is_current_account(toAccount):
+        return "Transaction unsuccessful: Receiving account must be a saving account!"
+
     date = datetime.datetime.now()
-    transaction(
-        date.year,
-        date.month,
-        date.day,
+    result = transaction(
+        str(date.year),
+        str(date.month),
+        str(date.day),
         date.strftime("%H-%M"),
         amount,
         message,
         fromAccount,
         toAccount
     )
+    if not result:
+        return "Transaction unsuccessful: Insufficient amount in account"
     return "Transaction successful"
 
 if __name__ == "__main__":
