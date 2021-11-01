@@ -179,6 +179,7 @@ def transfer(year=None, month=None, day=None, time=None, amount=None, message=No
         cursor.execute(transfer_cash)
         cursor.execute(update_from_account)
         cursor.execute(update_to_account)
+        myconn.commit();
 
 
 # example to test transfer function
@@ -213,7 +214,7 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
         cursor.execute(insert)
         cursor.execute(update_saving_account)
         cursor.execute(update_current_account)
-
+        myconn.commit()
 
 # example to test transaction function
 # transaction('2021', '11', '26', '11-05', 10, 'Hellooo', '6', '2')
@@ -226,5 +227,4 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
 #     print(cursor.fetchall())
 
 # testTransaction()
-
 ########################################################################################################################
