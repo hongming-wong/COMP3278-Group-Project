@@ -24,7 +24,7 @@ function App() {
 
 	const handleLogin = async () => {
 		try {
-			const res = await axios.post("http://localhost:5000/login", {
+			const res = await axios.post("http://localhost:5000/Login", {
 				username: "dummy",
 			});
 			console.log(res.data);
@@ -37,7 +37,7 @@ function App() {
 
 	const handleLogout = async () => {
 		try {
-			const res = await axios.post("http://localhost:5000/logout", {
+			const res = await axios.post("http://localhost:5000/Logout", {
 				username: "dummy",
 			});
 			console.log(res.data);

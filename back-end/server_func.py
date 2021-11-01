@@ -2,10 +2,14 @@ from backend_func import *
 from face_capture import *
 from faces_gui import *
 from train import *
-import time
 import datetime
-import threading
 from multiprocessing import Process, Pipe
+
+
+"""
+This file deals with functions that are implemented in app.py.
+It acts as the medium between app.py and backend_func.py
+"""
 
 
 """Constants defining login status"""
@@ -89,7 +93,7 @@ class FaceRecognition:
 
     def authenticate(self):
         """
-        forks another process to perform authentication,
+        Forks another process to perform authentication,
         and wait till authentication is complete or time is up
 
         I tried multithreading but it doesn't work with consistency. So creating

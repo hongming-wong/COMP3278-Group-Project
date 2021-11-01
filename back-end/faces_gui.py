@@ -5,6 +5,14 @@ import pickle
 import PySimpleGUI as sg
 import time
 
+"""
+This is the gui program for face recognition.
+verify() should be used with a subprocess and the childConn is one end of the pipe.
+If unable to recognize face for a period longer than TIMEOUT, the program will terminate.
+"""
+
+TIMEOUT = 5
+
 def verify(childConn):
     # 1 Create database connection
     myconn = mysql.connector.connect(host="localhost", user="root", passwd="12345", database="facerecognition")
@@ -45,7 +53,7 @@ def verify(childConn):
     win_started = False
 
     # 4 Open the camera and start face recognition
-    t_end = time.time() + 5
+    t_end = time.time() + TIMEOUT
     success = False
     while True:
         if time.time() > t_end:

@@ -4,8 +4,18 @@ import json
 import datetime
 from flask_cors import CORS
 
+"""
+This file contains the endpoints of the api.
+Please inform me if more endpoints are needed.
+- Hong Ming
+"""
+
 app = Flask(__name__)
+
+# allows for cross origin resource sharing
 CORS(app)
+
+# deals with logging in and logging out
 loginStatus = LoginMethods()
 
 
@@ -15,13 +25,13 @@ def Index():
     return "Server is active, please eat my pants"
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/Login', methods=['POST'])
 def LoginEndpoint():
     """
     When received a post request, it triggers the authentication function.
-    Post request doesn't need any data or form data.
     If successful, returns (Customer Name, Last Login Date, Last Login Time).
     If another user is logged in, or user doesn't exist, return response status = 401.
+    Parameters: None
     """
     if request.method == 'POST':
         if loginStatus.GetCredentials() is LOGGED_IN:
@@ -36,13 +46,11 @@ def LoginEndpoint():
         return Response("User doesn't exist", status=401)
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/Logout', methods=['POST'])
 def LogOutEndpoint():
     """
-    Attempts to logout.
-    If successful, returns string.
-    If no user is logged in, returns string.
-    else error response.
+    Logs out of the account.
+    Parameters: None
     """
     if request.method == 'POST':
         status = loginStatus.LogOut()
@@ -53,13 +61,11 @@ def LogOutEndpoint():
     return Response("Failed", status=401)
 
 
-@app.route('/accounts')
+@app.route('/Accounts')
 def accounts():
     """
-    Gets all the accounts that belongs to a user.
-    If accountType is not specified, returns all accounts
-    If filter, accountType has to be saving or current.
-    Else it will return an error response.
+    Return An array of accounts that belong to a user. User is required to login first.
+    Parameters: None
     """
     if loginStatus.GetCredentials() == NO_USER:
         return Response("Permission Denied", status= 403)
@@ -74,12 +80,12 @@ def accounts():
     return jsonString
 
 
-@app.route('/accountDetails')
+@app.route('/AccountDetails')
 def accountDetails():
     """
-    Given accountNo parameter,
-    if accountNo belongs to user,
-    returns accountDetails
+    Returns an array of details about an account. If accountNo doesn't belong to user,
+    return permission denied error status.
+    Required parameters: accountNo
     """
     accountNo = request.args.get('accountNo')
     if accountNo is None:
@@ -90,12 +96,12 @@ def accountDetails():
     return jsonString
 
 
-@app.route('/seeTransactions')
+@app.route('/SeeTransactions')
 def transactions():
     """
     Returns all transactions associated with an account.
-    accountNo is compulsory parameter.
-    year, month, day, amount, message are all optional
+    Required parameters: accountNo
+    Optional parameters: year, month, day, amount, message
     """
     accountNo = request.args.get('accountNo')
     # optional parameters
@@ -118,7 +124,11 @@ def MakeTransfer():
     IMPORTANT:
     1. transferring from one account to another must involve one current account, and one saving account.
     2. Both accounts have to belong to the same owner.
-    3. Parameters must be specified with form.
+    3. Parameters must be specified with form (See front-end/src/app.js example
+
+    Required parameters: amount, from, to, message
+
+    Note: the accounts have to be valid; account validation will be added later on.
     """
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
@@ -160,9 +170,13 @@ def MakeTransfer():
 def MakeTransaction():
     """
     Handles transaction from one account to another
-    1. fromAccount has to be a current account, while toAccount must be a savings account
+    1. fromAccount has to be a current account, toAccount must be a savings account
     2. Only valid if fromAccount belongs to owner and toAccount belongs to someone else.
-    2. Parameters must be specified with form.
+    2. Parameters must be specified with form (See front-end/src/App.js example)
+
+    Required parameters: amount, from, to, message
+
+    Note: the accounts have to be valid; account validation will be added later on.
     """
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
