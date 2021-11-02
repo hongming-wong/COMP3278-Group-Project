@@ -56,7 +56,7 @@ const Home = () => {
                 </Box>
             </Box>
             <Box className='home-right-container'>
-                <Box>Account transactions</Box>
+                <Box>Recent transactions</Box>
                 <TableContainer component={Paper}>
                     <Table aria-label='simple table'>
                         <TableHead>

@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react"
-import { Box, Button, TextField } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
 import './Login.scss';
 import axios from 'axios';
 
 const Login = () => {
     const [data, setData] = useState("Server is down");
-    const [random, setRandom] = useState("No Data");
-    const [msg, setMsg] = useState("");
-    const [to, setTo] = useState(null);
-    const [from, setFrom] = useState(null);
+    // const [random, setRandom] = useState("No Data");
     const [currentUser, setCurrentUser] = useState("No user");
-    const [amount, setAmount] = useState(0);
+    const [isCheckCredentials, setIsCheckCredentials] = useState(false);
 
     useEffect(() => {
         const getData = async () => {
@@ -50,68 +47,46 @@ const Login = () => {
         }
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        var f = new FormData();
-        f.append("from", from);
-        f.append("to", to);
-        f.append("message", msg);
-        f.append("amount", amount);
-        try {
-            const res = await axios({
-                method: "post",
-                url: "http://localhost:5000/Transfer",
-                data: f,
-            });
-            setRandom(res.data);
-            console.log(res.data);
-        } catch (err) {
-            setRandom("");
-            console.log(err);
-        }
-    };
+    // const handleSubmit = async (event) => {
+    //     event.preventDefault();
+    //     var f = new FormData();
+    //     f.append("from", from);
+    //     f.append("to", to);
+    //     f.append("message", msg);
+    //     f.append("amount", amount);
+    //     try {
+    //         const res = await axios({
+    //             method: "post",
+    //             url: "http://localhost:5000/Transfer",
+    //             data: f,
+    //         });
+    //         setRandom(res.data);
+    //         console.log(res.data);
+    //     } catch (err) {
+    //         setRandom("");
+    //         console.log(err);
+    //     }
+    // };
 
     return (
         <Box className = 'login-container'>
             <h1 className = 'test'> Is the server active?</h1>
  			<h2>{data}</h2>
- 			<h2>{random}</h2>
+ 			{/* <h2>{random}</h2> */}
  			<h2>Current User: {currentUser}</h2>
-            <Button onClick = {handleLogin}>Login</Button>
+            {/* <Button onClick = {handleLogin}>Login</Button> */}
+            <Button onClick = {() => setIsCheckCredentials(true)}>Login</Button> {/* test */}
             <Button onClick = {handleLogout}>Logout</Button>
-            <form onSubmit={handleSubmit}>
- 				<TextField
-                    label = 'From'
-                    required
-					type="number"
-					value={from}
-					onChange={(t) => setFrom(t.target.value)}
-				/>
-				<br />
-				<TextField
-					type="number"
-                    required
-                    label = 'To'
-					value={to}
-					onChange={(t) => setTo(t.target.value)}
-				/>
-				<br />
-				<TextField
-                    label = 'Amount'
-                    required
-					type="number"
-					value={amount}
-					onChange={(t) => setAmount(t.target.value)}
-				/>
-				<br />
-                <TextField 
-                    type="text"
-                    value={msg}
-                    onChange={(t) => setMsg(t.target.value)}
-                />
-                <br />
-				<input type="submit" value="Submit" />
-			</form>
+            <Dialog open = {isCheckCredentials} onClose = {() => isCheckCredentials(false)}>
+                <DialogTitle>Is this you?</DialogTitle>
+                <DialogContent>
+                    Credentials data goes here
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick = {() => window.location.pathname = '/'}>Yes!</Button>
+                    <Button onClick = {() => setIsCheckCredentials(false)}>No</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     )
 }
