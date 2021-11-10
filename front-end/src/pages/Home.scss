@@ -20,3 +20,37 @@
 
     }
 }
+
+.css-1t1j96h-MuiPaper-root-MuiDialog-paper {
+    max-width: none !important;
+}
+
+.account-transaction-dialog {
+    min-width: 50vw !important;
+    min-height: 80vh !important;
+    padding: 50px !important;
+}
+
+.account-big-container {
+    display: flex;
+    justify-content: space-between;
+
+    .account-left-container {
+        .account-details-container {
+            margin-bottom: 1rem;
+        }
+    }
+
+    .account-right-container {
+        
+    }
+}
+
+.dialog-content {
+    margin-top: 10px;
+}
+
+.footer-button {
+    margin: 0 10% !important;
+    width: 80%;
+}

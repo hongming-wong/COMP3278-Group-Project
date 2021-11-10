@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import Login from './pages/Login';
-import Account from './pages/Account';
 import Home from './pages/Home';
 
 import AppContext from './AppContext';
@@ -20,7 +19,6 @@ const App = () => {
 		<AppContext.Provider value={{isLogin, setIsLogin}}>
 			<Router>
 				<Switch>
-					<PrivateRoute path={"/account"} component={Account} />
 					<PrivateRoute path={"/home"} component={Home} />
 					<Route path={"/"} component={Login} />
 					
