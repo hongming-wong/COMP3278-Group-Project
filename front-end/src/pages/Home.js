@@ -49,7 +49,6 @@ const Home = () => {
         }
     }, [isAccountDetailsOpen]);
 
-
     // filter account transactions
     useEffect(() => {
         if (!isFilterOptionOpen) {
@@ -116,10 +115,10 @@ const Home = () => {
     const handleTransferSubmit = async (event) => {
         event.preventDefault();
         var f = new FormData();
-        f.append("from", transactionDetails.from);
-        f.append("to", transactionDetails.to);
-        f.append("message", transactionDetails.message);
-        f.append("amount", transactionDetails.amount);
+        f.append("from", transferDetails.from);
+        f.append("to", transferDetails.to);
+        f.append("message", transferDetails.message);
+        f.append("amount", transferDetails.amount);
         try {
             const res = await axios({
                 method: "post",
@@ -144,7 +143,7 @@ const Home = () => {
         try {
             const res = await axios({
                 method: "post",
-                url: "http://localhost:5000/Transfer",
+                url: "http://localhost:5000/Transaction",
                 data: f,
             });
             // setRandom(res.data);
@@ -415,7 +414,7 @@ const Home = () => {
                                                         onChange={(t) => setFilterOption({ ...filterOption, message: t.target.value })}
                                                     />
                                                 </Box>
-                                                <Button onClick={() => setIsFilterOptionOpen(false)}>Confirm</Button>
+                                                <Button variant = "outlined" onClick={() => setIsFilterOptionOpen(false)}>Confirm</Button>
                                             </Stack>
                                         </DialogContent>
                                     </Dialog>
@@ -430,29 +429,29 @@ const Home = () => {
                                                         required
                                                         type="number"
                                                         value={transferDetails.from}
-                                                        onChange={(t) => setTransferDetails({ ...transactionDetails, from: t.target.value })}
+                                                        onChange={(t) => setTransferDetails({ ...transferDetails, from: t.target.value })}
                                                     />
                                                     <TextField
                                                         type="number"
                                                         required
                                                         label='To'
                                                         value={transferDetails.to}
-                                                        onChange={(t) => setTransferDetails({ ...transactionDetails, to: t.target.value })}
+                                                        onChange={(t) => setTransferDetails({ ...transferDetails, to: t.target.value })}
                                                     />
                                                     <TextField
                                                         label='Amount'
                                                         required
                                                         type="number"
                                                         value={transferDetails.amount}
-                                                        onChange={(t) => setTransferDetails({ ...transactionDetails, amount: t.target.value })}
+                                                        onChange={(t) => setTransferDetails({ ...transferDetails, amount: t.target.value })}
                                                     />
                                                     <TextField
                                                         label="Message"
                                                         type="text"
                                                         value={transferDetails.message}
-                                                        onChange={(t) => setTransferDetails({ ...transactionDetails, message: t.target.value })}
+                                                        onChange={(t) => setTransferDetails({ ...transferDetails, message: t.target.value })}
                                                     />
-                                                    <Button type="submit">Submit</Button>
+                                                    <Button variant = "outlined" type="submit">Submit</Button>
                                                 </Stack>
                                             </form>
                                         </DialogContent>
@@ -490,7 +489,7 @@ const Home = () => {
                                                         value={transactionDetails.message}
                                                         onChange={(t) => setTransactionDetails({ ...transactionDetails, message: t.target.value })}
                                                     />
-                                                    <Button type="submit">Submit</Button>
+                                                    <Button variant = "outined" type="submit">Submit</Button>
                                                 </Stack>
                                             </form>
                                         </DialogContent>
