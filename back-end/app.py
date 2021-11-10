@@ -109,7 +109,7 @@ def transactions():
     """
     Returns all transactions associated with an account.
     Required parameters: accountNo
-    Optional parameters: year, month, day, amount, message
+    Optional parameters: year, month, day, time, amount, message
     """
 
     if loginStatus.GetCredentials() == NO_USER:
@@ -122,11 +122,12 @@ def transactions():
     day = request.args.get('day')
     amount = request.args.get('amount')
     message = request.args.get('message')
+    t = request.args.get('time')
     if accountNo is None:
         return "accountNo paramater is needed"
     if not accountOwner(accountNo, loginStatus):
         return Response("Permission denied", status=403)
-    jsonString = json.dumps(get_all_transactions(accountNo, year, month, day, amount, message))
+    jsonString = json.dumps(get_all_transactions(accountNo, year, month, day, amount, t, message))
     return jsonString
 
 
