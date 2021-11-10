@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
 import './Login.scss';
 import axios from 'axios';
+// import AppContext from "../AppContext";
 
 const Login = () => {
     const [data, setData] = useState("Server is down");
     // const [random, setRandom] = useState("No Data");
     const [currentUser, setCurrentUser] = useState("No user");
     const [isCheckCredentials, setIsCheckCredentials] = useState(false);
+
+    // const context = useContext(AppContext);
+
+    useEffect(() => {
+        if (currentUser != "Login failed" && currentUser != "No user") {
+            setIsCheckCredentials(true);
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         const getData = async () => {
@@ -72,19 +81,17 @@ const Login = () => {
         <Box className = 'login-container'>
             <h1 className = 'test'> Is the server active?</h1>
  			<h2>{data}</h2>
- 			{/* <h2>{random}</h2> */}
  			<h2>Current User: {currentUser}</h2>
-            {/* <Button onClick = {handleLogin}>Login</Button> */}
-            <Button onClick = {() => setIsCheckCredentials(true)}>Login</Button> {/* test */}
+            <Button onClick = {handleLogin}>Login</Button>
             <Button onClick = {handleLogout}>Logout</Button>
             <Dialog open = {isCheckCredentials} onClose = {() => isCheckCredentials(false)}>
                 <DialogTitle>Is this you?</DialogTitle>
                 <DialogContent>
-                    Credentials data goes here
+                    Name: {currentUser}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick = {() => window.location.pathname = '/'}>Yes!</Button>
-                    <Button onClick = {() => setIsCheckCredentials(false)}>No</Button>
+                    <Button onClick = {() => window.location.pathname = currentUser}>Yes!</Button>
+                    <Button onClick = {() => {setIsCheckCredentials(false); handleLogout()}}>No</Button>
                 </DialogActions>
             </Dialog>
         </Box>

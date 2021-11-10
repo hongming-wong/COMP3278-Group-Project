@@ -5,7 +5,14 @@
 
     .home-left-container {
         .home-left-content {
+            .account-type-container {
+                display: flex;
+                align-items: center;
 
+                .account-type-button {
+                    margin-left: 1rem;
+                }
+            }
         }
     }
 
