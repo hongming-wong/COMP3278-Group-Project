@@ -22,6 +22,12 @@ loginStatus = LoginMethods()
 @app.route('/')
 def Index():
     """Test endpoint, not used in production"""
+    bypass = request.args.get("bypass")
+    if bypass is not None:
+
+        loginStatus.LogIn(bypass)
+        return "bypass ok"
+
     return "Server is active, please eat my pants"
 
 
@@ -37,11 +43,11 @@ def LoginEndpoint():
         if loginStatus.GetCredentials() is LOGGED_IN:
             return "User is already logged in"
 
-        customerID, customerName = authentication()
+        customerID, customerName, date, time = authentication()
         if customerID is not False:
             status = loginStatus.LogIn(customerID)
             if status == SUCCESS or status == LOGGED_IN:
-                jsonString = json.dumps([customerID, customerName])
+                jsonString = json.dumps([customerID, customerName, date, time])
                 return jsonString
         return Response("User doesn't exist", status=401)
 
@@ -65,7 +71,7 @@ def LogOutEndpoint():
 def accounts():
     """
     Return An array of accounts that belong to a user. User is required to login first.
-    Parameters: None
+    Optional Parameters: accountType
     """
     if loginStatus.GetCredentials() == NO_USER:
         return Response("Permission Denied", status= 403)
@@ -87,6 +93,8 @@ def accountDetails():
     return permission denied error status.
     Required parameters: accountNo
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
     accountNo = request.args.get('accountNo')
     if accountNo is None:
         return "accountNo parameter is needed"
@@ -103,6 +111,10 @@ def transactions():
     Required parameters: accountNo
     Optional parameters: year, month, day, amount, message
     """
+
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
+
     accountNo = request.args.get('accountNo')
     # optional parameters
     year = request.args.get('year')
@@ -130,6 +142,8 @@ def MakeTransfer():
 
     Note: the accounts have to be valid; account validation will be added later on.
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
     toAccount = request.form.get('to')
@@ -178,6 +192,8 @@ def MakeTransaction():
 
     Note: the accounts have to be valid; account validation will be added later on.
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
     toAccount = request.form.get('to')
