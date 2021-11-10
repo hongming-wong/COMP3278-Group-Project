@@ -1,15 +1,24 @@
 .account-big-container {
     display: flex;
     justify-content: space-between;
-    margin: 5% 10%;
+    margin: 10% 10% 5% 10%;
 
     .account-left-container {
-        .account-left-content {
+        .account-details-container {
 
         }
     }
 
     .account-right-container {
-
+        
     }
+}
+
+.dialog-content {
+    margin-top: 10px;
+}
+
+.footer-button {
+    margin: 0 10% !important;
+    width: 80%;
 }

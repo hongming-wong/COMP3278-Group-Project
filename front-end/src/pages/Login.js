@@ -3,15 +3,16 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '
 
 import './Login.scss';
 import axios from 'axios';
-// import AppContext from "../AppContext";
+import AppContext from "../AppContext";
 
 const Login = () => {
     const [data, setData] = useState("Server is down");
     // const [random, setRandom] = useState("No Data");
     const [currentUser, setCurrentUser] = useState("No user");
+    const [userCredentials, setUserCredentials] = useState([]);
     const [isCheckCredentials, setIsCheckCredentials] = useState(false);
 
-    // const context = useContext(AppContext);
+    const context = useContext(AppContext);
 
     useEffect(() => {
         if (currentUser != "Login failed" && currentUser != "No user") {
@@ -37,6 +38,7 @@ const Login = () => {
                 username: "dummy",
             });
             console.log(res.data);
+            setUserCredentials(res.data);
             setCurrentUser(res.data[1]);
         } catch (err) {
             setCurrentUser("Login failed");
@@ -84,14 +86,17 @@ const Login = () => {
  			<h2>Current User: {currentUser}</h2>
             <Button onClick = {handleLogin}>Login</Button>
             <Button onClick = {handleLogout}>Logout</Button>
-            <Dialog open = {isCheckCredentials} onClose = {() => isCheckCredentials(false)}>
-                <DialogTitle>Is this you?</DialogTitle>
+            <Dialog open = {isCheckCredentials} onClose = {() => setIsCheckCredentials(false)}>
+                <DialogTitle>Welcome user, please verify your credentials</DialogTitle>
                 <DialogContent>
-                    Name: {currentUser}
+                    <Box><b>ID:</b> {userCredentials[0]}</Box>
+                    <Box><b>Name:</b> {currentUser}</Box>
+                    <Box><b>Last login date:</b> {userCredentials[2]}</Box>
+                    <Box><b>Last login time:</b> {userCredentials[3]}</Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick = {() => window.location.pathname = currentUser}>Yes!</Button>
-                    <Button onClick = {() => {setIsCheckCredentials(false); handleLogout()}}>No</Button>
+                    <Button variant = "contained" onClick = {() => {window.location.pathname = "/home/" + currentUser; context.setIsLogin(true);}}>Go to home</Button>
+                    <Button variant = "outlined" onClick = {() => {setIsCheckCredentials(false); handleLogout()}}>Logout</Button>
                 </DialogActions>
             </Dialog>
         </Box>

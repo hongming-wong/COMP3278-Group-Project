@@ -5,22 +5,25 @@ import Account from './pages/Account';
 import Home from './pages/Home';
 
 import AppContext from './AppContext';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 
 const App = () => {
-	const [username, setUsername] = useState("");
+	const [isLogin, setIsLogin] = useState(true);
 
-	const global = {
-		user: { get: username, set: setUsername },
-	};
+	const PrivateRoute = ({component}) => {
+		return (
+		  <Route render = {() => isLogin ? React.createElement(component) : <Redirect to = {"/"} />} />
+		)
+	  }
 
 	return (
-		<AppContext.Provider value={global}>
+		<AppContext.Provider value={{isLogin, setIsLogin}}>
 			<Router>
 				<Switch>
-					<Route exact path={"/login"} component={Login} />
-					<Route exact path={"/account"} component={Account} />
-					<Route path={"/"} component={Home} />
+					<PrivateRoute path={"/account"} component={Account} />
+					<PrivateRoute path={"/home"} component={Home} />
+					<Route path={"/"} component={Login} />
+					
 				</Switch>
 			</Router>
 		</AppContext.Provider>
