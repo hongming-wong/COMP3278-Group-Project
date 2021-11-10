@@ -114,7 +114,7 @@ class FaceRecognition:
         parent_conn.close()
         print("Done")
         if self.customerID is False or self.name is False:
-            return False, False
+            return False, False, False, False
 
         today = datetime.datetime.today()
         now = datetime.datetime.now()
@@ -128,7 +128,7 @@ class FaceRecognition:
         val = (current_time, self.customerID)
         cursor.execute(update, val)
         myconn.commit()
-        return self.customerID, self.name
+        return self.customerID, self.name, date, current_time
 
 if __name__ == "__main__":
     authentication()
