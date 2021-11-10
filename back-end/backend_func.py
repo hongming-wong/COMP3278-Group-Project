@@ -47,7 +47,7 @@ def get_all_transactions(account_number, year=None, month=None, day=None, amount
         else 'SavingAccount_number') + f' = "{account_number}" ' + (
                  f'AND date_year = "{year}" ' if year else '') + (
                  f'AND date_month = "{month}" ' if month else '') + (f'AND date_day = "{day}" ' if day else '') + (
-                 f'AND amount = {amount} ' if amount else '') + (f'AND date_time = {time}' if time else '') + (
+                 f'AND amount = {amount} ' if amount else '') + (f'AND date_time = "{time}" ' if time else '') + (
                  f'AND message LIKE "%{message}%"' if message else '') + ';'
     cursor.execute(select)
     return cursor.fetchall()
