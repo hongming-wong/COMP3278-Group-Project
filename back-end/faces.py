@@ -8,7 +8,7 @@ from datetime import datetime
 import sys
 
 # 1 Create database connection
-myconn = mysql.connector.connect(host="localhost", user="root", passwd="12345", database="facerecognition")
+myconn = mysql.connector.connect(host="localhost", user="root", passwd="CebWXrQC", database="facerecognition") # Change back a sohai
 date = datetime.utcnow()
 now = datetime.now()
 current_time = now.strftime("%H:%M:%S")

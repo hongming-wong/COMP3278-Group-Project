@@ -3,7 +3,7 @@ import uuid
 
 host = 'localhost'
 user = 'root'
-passwd = '12345'
+passwd = 'CebWXrQC' # Change back a sohai
 
 myconn = mysql.connector.connect(host=host, user=user, passwd=passwd, database="facerecognition")
 cursor = myconn.cursor()
