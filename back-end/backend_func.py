@@ -42,7 +42,7 @@ def get_all_accounts(customer_id, type_filter=None):
 # for an account.  Filters can be applied.
 def get_all_transactions(account_number, year=None, month=None, day=None, amount=None, time = None, message=None):
     cursor.execute('SELECT * FROM CurrentAccount;')
-    select = 'SELECT transactionID, date_year, date_month, date_day, date_time, amount FROM Transaction WHERE ' + (
+    select = 'SELECT transactionID, date_year, date_month, date_day, date_time, amount, message FROM Transaction WHERE ' + (
         'CurrentAccount_number' if account_number in map(lambda x: x[0], cursor.fetchall())
         else 'SavingAccount_number') + f' = "{account_number}" ' + (
                  f'AND date_year = "{year}" ' if year else '') + (
