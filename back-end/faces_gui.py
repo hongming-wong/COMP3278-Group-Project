@@ -11,7 +11,7 @@ verify() should be used with a subprocess and the childConn is one end of the pi
 If unable to recognize face for a period longer than TIMEOUT, the program will terminate.
 """
 
-TIMEOUT = 5
+TIMEOUT = 20
 
 def verify(childConn):
     # 1 Create database connection
@@ -38,24 +38,24 @@ def verify(childConn):
     cap = cv2.VideoCapture(0)
 
     CONFIDENCE = 60
+    TRIGGER = True
+    sg.theme('DarkGray 3')
 
     # 3 Define pysimplegui setting
-    layout =  [[sg.OK(), sg.Cancel()]]
-    win = sg.Window('Face Recognition System',
-            default_element_size=(21,1),
+    layout =  [[sg.Text('Press OK to proceed to the Face Recognition System.')], [sg.OK(), sg.Cancel()]]
+    win = sg.Window('Authentication System',
             text_justification='center',
             auto_size_text=False).Layout(layout)
     event, values = win.Read()
     if event is None or event =='Cancel':
-        exit()
-    args = values
+        TRIGGER = False
     gui_confidence = CONFIDENCE
     win_started = False
 
     # 4 Open the camera and start face recognition
     t_end = time.time() + TIMEOUT
     success = False
-    while True:
+    while TRIGGER:
         if time.time() > t_end:
             break
         ret, frame = cap.read()
@@ -126,15 +126,12 @@ def verify(childConn):
         if not win_started:
             win_started = True
             layout = [
-                [sg.Text('iKYC System Interface', size=(30,1))],
+                [sg.Text(f"Please hold still...", size=(30,1))],
                 [sg.Image(data=imgbytes, key='_IMAGE_')],
-                [sg.Text('Confidence'),
-                    sg.Slider(range=(0, 100), orientation='h', resolution=1, default_value=60, size=(15, 15), key='confidence')],
                 [sg.Exit()]
             ]
-            win = sg.Window('iKYC System',
-                    default_element_size=(14, 1),
-                    text_justification='right',
+            win = sg.Window("Authentication System",
+                    text_justification='left',
                     auto_size_text=False).Layout(layout).Finalize()
             image_elem = win.FindElement('_IMAGE_')
         else:
@@ -143,7 +140,6 @@ def verify(childConn):
         event, values = win.Read(timeout=20)
         if event is None or event == 'Exit':
             break
-        gui_confidence = values['confidence']
 
     if not success:
         childConn.send((False, False))
