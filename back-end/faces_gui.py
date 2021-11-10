@@ -15,7 +15,7 @@ TIMEOUT = 20
 
 def verify(childConn):
     # 1 Create database connection
-    myconn = mysql.connector.connect(host="localhost", user="root", passwd="CebWXrQC", database="facerecognition") # Change back a sohai
+    myconn = mysql.connector.connect(host="localhost", user="root", passwd="12345", database="facerecognition")
     cursor = myconn.cursor()
 
 
