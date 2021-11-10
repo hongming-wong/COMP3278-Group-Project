@@ -5,8 +5,13 @@ host = 'localhost'
 user = 'root'
 passwd = '12345'
 
-myconn = mysql.connector.connect(host=host, user=user, passwd=passwd, database="facerecognition")
-cursor = myconn.cursor()
+
+def c():
+    """
+    Because flask is multi-threaded, it is important that each cursor is created independently.
+    """
+    myconn = mysql.connector.connect(host=host, user=user, passwd=passwd, database="facerecognition")
+    return myconn.cursor(), myconn
 
 def main():
     """For testing purposes"""
@@ -28,6 +33,7 @@ def get_all_accounts(customer_id, type_filter=None):
     else:
         select = f'SELECT account_number FROM Account WHERE customerID = {customer_id} AND account_number ' \
                  f'IN (SELECT * FROM {"SavingAccount" if type_filter == "saving" else "CurrentAccount"});'
+    cursor, _ = c()
     cursor.execute(select)
     return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0], cursor.fetchall()))
 
@@ -41,6 +47,7 @@ def get_all_accounts(customer_id, type_filter=None):
 # This returns a list of all transaction IDs and dates
 # for an account.  Filters can be applied.
 def get_all_transactions(account_number, year=None, month=None, day=None, amount=None, time = None, message=None):
+    cursor, _ = c()
     cursor.execute('SELECT * FROM CurrentAccount;')
     select = 'SELECT transactionID, date_year, date_month, date_day, date_time, amount, message FROM Transaction WHERE ' + (
         'CurrentAccount_number' if account_number in map(lambda x: x[0], cursor.fetchall())
@@ -63,6 +70,7 @@ def get_all_transactions(account_number, year=None, month=None, day=None, amount
 # This directly returns a number instead of a list of tuples
 def get_balance(account_number):
     select = f'SELECT balance FROM Account WHERE account_number = {account_number};'
+    cursor, _ = c()
     cursor.execute(select)
     tup = next(iter(cursor.fetchall()), None)
     return tup[0] if tup else tup
@@ -79,6 +87,7 @@ def get_customer_details(customer_id):
     select = 'SELECT Customer.name, Customer.login_date, Customer.login_time, ' \
              'SUM(Account.balance), COUNT(Account.account_number) FROM Customer, Account WHERE ' \
              f'Account.customerID = {customer_id} AND Account.customerID = Customer.customerID;'
+    cursor, _ = c()
     cursor.execute(select)
     tup = next(iter(cursor.fetchall()), None)
     return tuple([float(tup[i]) if i == 4 else tup[i] for i in range(len(tup))])
@@ -93,6 +102,7 @@ def get_customer_details(customer_id):
 # Format: tuple(transactionID, date (YYYY-MM-DD), time (HH:MM), amount, message, saving account id, current account id)
 def get_transaction_details(transaction_id):
     select = f'SELECT * FROM Transaction WHERE transactionID = {transaction_id};'
+    cursor, _ = c()
     cursor.execute(select)
     tup = next(iter(cursor.fetchall()), None)
     return (tup[0], '{}-{}-{}'.format(*tup[1:4]), '{}:{}'.format(*tup[4].split('-')), *tup[5:len(tup)]) if tup else tup
@@ -108,6 +118,7 @@ def get_transaction_details(transaction_id):
 def get_account_details(account_number):
     select = 'SELECT customerID, currency, balance, (CASE WHEN account_number IN (SELECT * FROM CurrentAccount) ' \
              f'THEN "Current" ELSE "Saving" END) FROM Account WHERE account_number = {account_number};'
+    cursor, _ = c()
     cursor.execute(select)
     return next(iter(cursor.fetchall()), None)
 
@@ -126,6 +137,7 @@ def get_all_transfers(saving_account_number, year=None, month=None, day=None, am
                  f'AND date_month = "{month}" ' if month else '') + (f'AND date_day = "{day}" ' if day else '') + (
                  f'AND amount = {amount} ' if amount else '') + (
                  f'AND message LIKE "%{message}%"' if message else '') + ';'
+    cursor, _ = c()
     cursor.execute(select)
     return list(map(lambda tup: ('{}-{}-{}'.format(*tup[0:3]), '{}:{}'.format(*tup[3].split('-')), *tup[4:len(tup)]),
                     cursor.fetchall()))
@@ -137,6 +149,7 @@ def get_all_transfers(saving_account_number, year=None, month=None, day=None, am
 ########################################################################################################################
 
 def get_all_records(saving_account_number, year=None, month=None, day=None, amount=None, message=None):
+    cursor, _ = c()
     cursor.execute(
         f'SELECT account_number FROM Account WHERE account_number = {saving_account_number} AND account_number IN '
         '(SELECT * FROM SavingAccount);')
@@ -149,6 +162,7 @@ def get_all_records(saving_account_number, year=None, month=None, day=None, amou
 
 # check if an account is a current account or not
 def is_current_account(account_number):
+    cursor, _ = c()
     cursor.execute('SELECT account_number FROM SavingAccount;')
     return next(iter([acc[0] for acc in cursor.fetchall() if account_number == acc[0]]), None) is None
 
@@ -177,6 +191,7 @@ def transfer(year=None, month=None, day=None, time=None, amount=None, message=No
                               f'"{amount}" WHERE account_number = "{from_account_num}";'
         update_to_account = 'UPDATE Account SET balance = balance +' \
                             f'"{amount}" WHERE account_number = "{to_account_num}";'
+        cursor, myconn = c()
         cursor.execute(transfer_cash)
         cursor.execute(update_from_account)
         cursor.execute(update_to_account)
@@ -218,6 +233,7 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
                                 f'"{amount}" WHERE account_number = "{saving_account_num}";'
         update_current_account = 'UPDATE Account SET balance = balance -' \
                                  f'"{amount}" WHERE account_number = "{current_account_num}";'
+        cursor, myconn = c()
         cursor.execute(update_saving_account)
         cursor.execute(update_current_account)
         cursor.execute(insert)

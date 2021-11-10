@@ -162,7 +162,9 @@ def MakeTransfer():
     if not isOwnerOne or not isOwnerTwo:
         return "Transfer unsuccessful: account(s) don't belong to user "
 
-    if is_current_account(isOwnerOne) and is_current_account(toAccount):
+    cond1 = is_current_account(fromAccount)
+    cond2 = is_current_account(toAccount)
+    if cond1 == cond2:
         return "Transfer unsuccessful: Both accounts must be of different types."
 
     amount = int(amount)
