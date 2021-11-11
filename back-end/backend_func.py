@@ -170,6 +170,16 @@ def is_current_account(account_number):
 # Example:
 # print(is_current_account("6"))
 
+#########################################################################################################################
+
+# check the currency of an account
+def check_currency(account_number=None):
+    currency = f'SELECT currency FROM Account WHERE account_number = {account_number};'
+    cursor, myconn = c()
+    cursor.execute(currency)
+    tup = next(iter(cursor.fetchall()), None)
+    return tup[0] if tup else tup
+
 ########################################################################################################################
 
 # This function transfers money from saving account to current account and vice versa between the same customer
@@ -179,18 +189,22 @@ def is_current_account(account_number):
 def transfer(year=None, month=None, day=None, time=None, amount=None, message=None, from_account_num=None,
              to_account_num=None):
     if get_balance(from_account_num) >= amount:
+        from_currency = check_currency(from_account_num)
+        to_currency = check_currency(to_account_num)
+        insert_amount = amount if (from_currency == to_currency) else (7.79*amount if from_currency == 'USD' else amount)
+        to_amount = amount if from_currency == to_currency else (7.79*amount if to_currency == 'HKD' else 0.13*amount)
         if is_current_account(from_account_num):
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f'"{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", "{to_account_num}", ' \
+                            f'"{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{to_account_num}", ' \
                             f'"{from_account_num}" );'
         else:
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f'"{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", "{from_account_num}", ' \
+                            f'"{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{from_account_num}", ' \
                             f'"{to_account_num}" );'
         update_from_account = 'UPDATE Account SET balance = balance -' \
                               f'"{amount}" WHERE account_number = "{from_account_num}";'
         update_to_account = 'UPDATE Account SET balance = balance +' \
-                            f'"{amount}" WHERE account_number = "{to_account_num}";'
+                            f'"{to_amount}" WHERE account_number = "{to_account_num}";'
         cursor, myconn = c()
         cursor.execute(transfer_cash)
         cursor.execute(update_from_account)
@@ -226,11 +240,15 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
         # therefore a randomly generated key will work better here.
         # - Hong Ming
         key = str(uuid.uuid4())[:10]
+        saving_currency = check_currency(saving_account_num)
+        current_currency = check_currency(current_account_num)
+        insert_amount = amount if saving_currency == current_currency else (7.79*amount if current_currency == 'USD' else amount)
+        saving_amount = amount if saving_currency == current_currency else (7.79*amount if saving_currency == 'HKD' else 0.13*amount)
         insert = 'INSERT INTO Transaction VALUES (' \
-                 f' "{key}", "{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", ' \
-                 f'"{saving_account_num}", "{current_account_num}" ); '
+                 f' "{key}", "{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", ' \
+                 f'"{current_account_num}", "{saving_account_num}" ); '
         update_saving_account = 'UPDATE Account SET balance = balance +' \
-                                f'"{amount}" WHERE account_number = "{saving_account_num}";'
+                                f'"{saving_amount}" WHERE account_number = "{saving_account_num}";'
         update_current_account = 'UPDATE Account SET balance = balance -' \
                                  f'"{amount}" WHERE account_number = "{current_account_num}";'
         cursor, myconn = c()
@@ -257,4 +275,4 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
 ########################################################################################################################
 
 if __name__ == "__main__":
-    transaction("2022", "11", "26", "11-05", 49, "cunt", "6", "2")
+    transaction("2022", "11", "26", "11-05", 5, "lolol", "2", "5")
