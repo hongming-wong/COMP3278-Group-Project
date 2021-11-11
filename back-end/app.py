@@ -231,8 +231,8 @@ def MakeTransaction():
         date.strftime("%H-%M"),
         amount,
         message,
-        fromAccount,
-        toAccount
+        current_account_num=fromAccount,
+        saving_account_num=toAccount
     )
     if not result:
         return "Transaction unsuccessful: Insufficient amount in account"
