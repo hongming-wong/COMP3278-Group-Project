@@ -131,6 +131,32 @@ def transactions():
     return jsonString
 
 
+@app.route('/SeeTransfers')
+def transfers():
+    """
+    Returns all transfers associated with an account.
+    Required parameters: accountNo
+    Optional parameters: year, month, day, time, amount, message
+    """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
+
+    accountNo = request.args.get('accountNo')
+    # optional parameters
+    year = request.args.get('year')
+    month = request.args.get('month')
+    day = request.args.get('day')
+    amount = request.args.get('amount')
+    message = request.args.get('message')
+    t = request.args.get('time')
+    if accountNo is None:
+        return "accountNo parameter is needed"
+    if not accountOwner(accountNo, loginStatus):
+        return Response("Permission denied", status=403)
+    jsonString = json.dumps(get_all_transfers(accountNo, year, month, day, t, amount, message))
+    return jsonString
+
+
 @app.route('/Transfer', methods=["POST"])
 def MakeTransfer():
     """

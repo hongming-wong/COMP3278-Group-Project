@@ -130,18 +130,17 @@ def get_account_details(account_number):
 
 # Returns a list of all transfers of a saving account (to current accounts).  Filters can be applied.
 # Format: list of tuple(date (YYYY-MM-DD), time (HH:MM), amount, message, current account number)
-def get_all_transfers(saving_account_number, year=None, month=None, day=None, amount=None, message=None):
+def get_all_transfers(saving_account_number, year=None, month=None, day=None, date_time = None, amount=None, message=None):
     select = 'SELECT transferID, date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number ' \
              f'FROM Transfer WHERE SavingAccount_number = "{saving_account_number}" ' + (
                  f'AND date_year = "{year}" ' if year else '') + (
                  f'AND date_month = "{month}" ' if month else '') + (f'AND date_day = "{day}" ' if day else '') + (
                  f'AND amount = {amount} ' if amount else '') + (
+                 f'AND date_time = "{date_time}"' if date_time else '') + (
                  f'AND message LIKE "%{message}%"' if message else '') + ';'
     cursor, _ = c()
     cursor.execute(select)
-    return list(map(lambda tup: ('{}-{}-{}'.format(*tup[0:3]), '{}:{}'.format(*tup[3].split('-')), *tup[4:len(tup)]),
-                    cursor.fetchall()))
-
+    return cursor.fetchall()
 
 # Example: Obtain all transfer of a saving account
 # print(get_all_transfers('2'))
