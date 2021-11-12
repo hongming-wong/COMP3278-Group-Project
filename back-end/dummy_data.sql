@@ -55,6 +55,7 @@ create table Transaction(
 );
 
 create table Transfer(
+    transferID VARCHAR(10) NOT NULL,
 	date_year VARCHAR(10) NOT NULL,
     date_month VARCHAR(10) NOT NULL,
     date_day VARCHAR(10) NOT NULL,
@@ -107,13 +108,13 @@ INSERT INTO Transaction (transactionID, date_year, date_month, date_day, date_ti
 INSERT INTO Transaction (transactionID, date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number, SavingAccount_number) VALUES ('6', '2021', '10', '26', '11-09', 70, 'Helloiii', '6', '3');
 INSERT INTO Transaction (transactionID, date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number, SavingAccount_number) VALUES ('7', '2021', '10', '26', '11-10', 20, 'Hello', '6', '1');
 
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '26', '11-00', 350, 'Hello', '1', '5');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '27', '11-00', 250, 'Helloo', '2', '6');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '28', '11-00', 150, 'He', '2', '6');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '28', '11-00', 20, 'Hi', '3', '6');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '28', '11-00', 40, 'HelloWorld', '4', '5');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('1', '2021', '10', '26', '11-00', 350, 'Hello', '1', '5');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('2', '2021', '10', '27', '11-00', 250, 'Helloo', '2', '6');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('3', '2021', '10', '28', '11-00', 150, 'He', '2', '6');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('4', '2021', '10', '28', '11-00', 20, 'Hi', '3', '6');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('5', '2021', '10', '28', '11-00', 40, 'HelloWorld', '4', '5');
 
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '29', '11-00', 30, 'Hellowww', '4', '6');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '29', '11-00', 20, 'Halo', '4', '5');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '29', '11-00', 100, 'Helloeveryone', '3', '5');
-INSERT INTO Transfer (date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ( '2021', '10', '29', '11-00', 1050, 'Hello', '2', '7');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('6', '2021', '10', '29', '11-00', 30, 'Hellowww', '4', '6');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('7', '2021', '10', '29', '11-00', 20, 'Halo', '4', '5');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('8', '2021', '10', '29', '11-00', 100, 'Helloeveryone', '3', '5');
+INSERT INTO Transfer (transferID, date_year, date_month, date_day, date_time, amount, message, SavingAccount_number, CurrentAccount_number) VALUES ('9', '2021', '10', '29', '11-00', 1050, 'Hello', '2', '7');

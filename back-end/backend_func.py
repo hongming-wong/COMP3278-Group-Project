@@ -131,7 +131,7 @@ def get_account_details(account_number):
 # Returns a list of all transfers of a saving account (to current accounts).  Filters can be applied.
 # Format: list of tuple(date (YYYY-MM-DD), time (HH:MM), amount, message, current account number)
 def get_all_transfers(saving_account_number, year=None, month=None, day=None, amount=None, message=None):
-    select = 'SELECT date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number ' \
+    select = 'SELECT transferID, date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number ' \
              f'FROM Transfer WHERE SavingAccount_number = "{saving_account_number}" ' + (
                  f'AND date_year = "{year}" ' if year else '') + (
                  f'AND date_month = "{month}" ' if month else '') + (f'AND date_day = "{day}" ' if day else '') + (
@@ -189,17 +189,18 @@ def check_currency(account_number=None):
 def transfer(year=None, month=None, day=None, time=None, amount=None, message=None, from_account_num=None,
              to_account_num=None):
     if get_balance(from_account_num) >= amount:
+        key = str(uuid.uuid4())[:10]
         from_currency = check_currency(from_account_num)
         to_currency = check_currency(to_account_num)
         insert_amount = amount if (from_currency == to_currency) else (7.79*amount if from_currency == 'USD' else amount)
         to_amount = amount if from_currency == to_currency else (7.79*amount if to_currency == 'HKD' else 0.13*amount)
         if is_current_account(from_account_num):
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f'"{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{to_account_num}", ' \
+                            f' "{key}", "{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{to_account_num}", ' \
                             f'"{from_account_num}" );'
         else:
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f'"{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{from_account_num}", ' \
+                            f' "{key}", "{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{from_account_num}", ' \
                             f'"{to_account_num}" );'
         update_from_account = 'UPDATE Account SET balance = balance -' \
                               f'"{amount}" WHERE account_number = "{from_account_num}";'
@@ -275,4 +276,5 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
 ########################################################################################################################
 
 if __name__ == "__main__":
-    transaction("2022", "11", "26", "11-05", 5, "lolol", "2", "5")
+    # transaction("2022", "11", "26", "11-05", 5, "lolol", "2", "5")
+    transfer('2021', '10', '29', '11-00', 10, 'Hello222', '6', '1')
