@@ -82,6 +82,7 @@ def accounts():
         allAccount = get_all_accounts(loginStatus.currentUser, accountType)
     else:
         return Response("Query parameters not valid!", status=401)
+    print(allAccount)
     jsonString = json.dumps(allAccount)
     return jsonString
 

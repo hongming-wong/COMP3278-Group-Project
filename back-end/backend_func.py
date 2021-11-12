@@ -29,13 +29,16 @@ def main():
 def get_all_accounts(customer_id, type_filter=None):
     if type_filter is None:
         select = 'SELECT account_number, (CASE WHEN account_number IN (SELECT * FROM CurrentAccount) THEN "Current" ' \
-                 f'ELSE "Saving" END) FROM Account WHERE customerID = "{customer_id}" ORDER BY account_number; '
+                 f'ELSE "Saving" END), currency FROM Account WHERE customerID = "{customer_id}" ORDER BY account_number; '
     else:
-        select = f'SELECT account_number FROM Account WHERE customerID = {customer_id} AND account_number ' \
-                 f'IN (SELECT * FROM {"SavingAccount" if type_filter == "saving" else "CurrentAccount"});'
+        select = f"""Select A.account_number, A.currency From Account A, {"SavingAccount" if type_filter == "saving" else "CurrentAccount"} T
+        Where A.customerID = {customer_id}
+        AND A.account_number = T.account_number
+        ORDER BY account_number;"""
+
     cursor, _ = c()
     cursor.execute(select)
-    return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0], cursor.fetchall()))
+    return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0:2], cursor.fetchall()))
 
 
 # Example: Obtain all accounts, including savings and current account, of a customer
