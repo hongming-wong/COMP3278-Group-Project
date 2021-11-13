@@ -1,56 +1,79 @@
 .home-big-container {
-    display: flex;
-    justify-content: space-between;
-    margin: 10% 10% 5% 10%;
+	display: flex;
+	justify-content: space-between;
+	margin: 10% 10% 5% 10%;
 
-    .home-left-container {
-        .home-left-content {
-            .account-type-container {
-                display: flex;
-                align-items: center;
+	.home-left-container {
+		.home-left-content {
+			.account-type-container {
+				display: flex;
+				align-items: center;
 
-                .account-type-button {
-                    margin-left: 1rem;
-                }
-            }
-        }
-    }
+				.account-type-button {
+					margin-left: 1rem;
+					background: rgba(54, 9, 121, 1) 54%;
+					margin-bottom: 1rem;
+				}
+			}
+		}
+	}
 
-    .home-right-container {
+	.home-right-container {
+	}
+}
 
-    }
+.appbar {
+	background: linear-gradient(
+		90deg,
+		rgba(2, 0, 36, 1) 0%,
+		rgba(54, 9, 121, 1) 54%,
+		rgba(0, 119, 255, 1) 99%
+	);
+	color: white;
+}
+
+.temp {
+	color: white;
+	border-width: 2px;
 }
 
 .css-1t1j96h-MuiPaper-root-MuiDialog-paper {
-    max-width: none !important;
+	max-width: none !important;
 }
 
 .account-transaction-dialog {
-    min-width: 50vw !important;
-    min-height: 80vh !important;
-    padding: 50px !important;
+	min-width: 50vw !important;
+	min-height: 80vh !important;
+	padding: 50px !important;
 }
 
 .account-big-container {
-    display: flex;
-    justify-content: space-between;
+	display: flex;
+	justify-content: space-between;
 
-    .account-left-container {
-        .account-details-container {
-            margin-bottom: 1rem;
-        }
-    }
+	.account-left-container {
+		.account-details-container {
+			margin-bottom: 1rem;
+		}
+	}
 
-    .account-right-container {
-        
-    }
+	.account-right-container {
+	}
 }
 
 .dialog-content {
-    margin-top: 10px;
+	margin-top: 10px;
 }
 
 .footer-button {
-    margin: 0 10% !important;
-    width: 80%;
+	margin: 0 10% !important;
+	width: 80%;
+	background: rgb(2, 0, 36);
+
+	background: linear-gradient(
+		90deg,
+		rgba(2, 0, 36, 1) 0%,
+		rgba(54, 9, 121, 1) 54%,
+		rgba(0, 119, 255, 1) 99%
+	);
 }
