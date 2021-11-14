@@ -1,0 +1,27 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+.container {
+	height: 100vh;
+	background: rgb(2, 0, 36);
+	background: linear-gradient(
+		90deg,
+		rgba(2, 0, 36, 1) 0%,
+		rgba(121, 9, 103, 1) 35%,
+		rgba(0, 212, 255, 1) 100%
+	);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.login-container {
+	background-color: white;
+	border-radius: 5px;
+	text-align: center;
+	width: fit-content;
+	padding: 10px;
+	box-shadow: 5px 10px #888888;
+}

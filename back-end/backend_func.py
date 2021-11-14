@@ -5,8 +5,13 @@ host = 'localhost'
 user = 'root'
 passwd = '12345'
 
-myconn = mysql.connector.connect(host=host, user=user, passwd=passwd, database="facerecognition")
-cursor = myconn.cursor()
+
+def c():
+    """
+    Because flask is multi-threaded, it is important that each cursor is created independently.
+    """
+    myconn = mysql.connector.connect(host=host, user=user, passwd=passwd, database="facerecognition")
+    return myconn.cursor(), myconn
 
 def main():
     """For testing purposes"""
@@ -24,12 +29,16 @@ def main():
 def get_all_accounts(customer_id, type_filter=None):
     if type_filter is None:
         select = 'SELECT account_number, (CASE WHEN account_number IN (SELECT * FROM CurrentAccount) THEN "Current" ' \
-                 f'ELSE "Saving" END) FROM Account WHERE customerID = "{customer_id}" ORDER BY account_number; '
+                 f'ELSE "Saving" END), currency FROM Account WHERE customerID = "{customer_id}" ORDER BY account_number; '
     else:
-        select = f'SELECT account_number FROM Account WHERE customerID = {customer_id} AND account_number ' \
-                 f'IN (SELECT * FROM {"SavingAccount" if type_filter == "saving" else "CurrentAccount"});'
+        select = f"""Select A.account_number, A.currency From Account A, {"SavingAccount" if type_filter == "saving" else "CurrentAccount"} T
+        Where A.customerID = {customer_id}
+        AND A.account_number = T.account_number
+        ORDER BY account_number;"""
+
+    cursor, _ = c()
     cursor.execute(select)
-    return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0], cursor.fetchall()))
+    return cursor.fetchall() if type_filter is None else tuple(map(lambda x: x[0:2], cursor.fetchall()))
 
 
 # Example: Obtain all accounts, including savings and current account, of a customer
@@ -40,14 +49,15 @@ def get_all_accounts(customer_id, type_filter=None):
 
 # This returns a list of all transaction IDs and dates
 # for an account.  Filters can be applied.
-def get_all_transactions(account_number, year=None, month=None, day=None, amount=None, message=None):
+def get_all_transactions(account_number, year=None, month=None, day=None, amount=None, time = None, message=None):
+    cursor, _ = c()
     cursor.execute('SELECT * FROM CurrentAccount;')
-    select = 'SELECT transactionID, date_year, date_month, date_day, amount FROM Transaction WHERE ' + (
+    select = 'SELECT transactionID, date_year, date_month, date_day, date_time, amount, message FROM Transaction WHERE ' + (
         'CurrentAccount_number' if account_number in map(lambda x: x[0], cursor.fetchall())
         else 'SavingAccount_number') + f' = "{account_number}" ' + (
                  f'AND date_year = "{year}" ' if year else '') + (
                  f'AND date_month = "{month}" ' if month else '') + (f'AND date_day = "{day}" ' if day else '') + (
-                 f'AND amount = {amount} ' if amount else '') + (
+                 f'AND amount = {amount} ' if amount else '') + (f'AND date_time = "{time}" ' if time else '') + (
                  f'AND message LIKE "%{message}%"' if message else '') + ';'
     cursor.execute(select)
     return cursor.fetchall()
@@ -63,6 +73,7 @@ def get_all_transactions(account_number, year=None, month=None, day=None, amount
 # This directly returns a number instead of a list of tuples
 def get_balance(account_number):
     select = f'SELECT balance FROM Account WHERE account_number = {account_number};'
+    cursor, _ = c()
     cursor.execute(select)
     tup = next(iter(cursor.fetchall()), None)
     return tup[0] if tup else tup
@@ -79,6 +90,7 @@ def get_customer_details(customer_id):
     select = 'SELECT Customer.name, Customer.login_date, Customer.login_time, ' \
              'SUM(Account.balance), COUNT(Account.account_number) FROM Customer, Account WHERE ' \
              f'Account.customerID = {customer_id} AND Account.customerID = Customer.customerID;'
+    cursor, _ = c()
     cursor.execute(select)
     tup = next(iter(cursor.fetchall()), None)
     return tuple([float(tup[i]) if i == 4 else tup[i] for i in range(len(tup))])
@@ -93,6 +105,7 @@ def get_customer_details(customer_id):
 # Format: tuple(transactionID, date (YYYY-MM-DD), time (HH:MM), amount, message, saving account id, current account id)
 def get_transaction_details(transaction_id):
     select = f'SELECT * FROM Transaction WHERE transactionID = {transaction_id};'
+    cursor, _ = c()
     cursor.execute(select)
     tup = next(iter(cursor.fetchall()), None)
     return (tup[0], '{}-{}-{}'.format(*tup[1:4]), '{}:{}'.format(*tup[4].split('-')), *tup[5:len(tup)]) if tup else tup
@@ -108,6 +121,7 @@ def get_transaction_details(transaction_id):
 def get_account_details(account_number):
     select = 'SELECT customerID, currency, balance, (CASE WHEN account_number IN (SELECT * FROM CurrentAccount) ' \
              f'THEN "Current" ELSE "Saving" END) FROM Account WHERE account_number = {account_number};'
+    cursor, _ = c()
     cursor.execute(select)
     return next(iter(cursor.fetchall()), None)
 
@@ -119,17 +133,17 @@ def get_account_details(account_number):
 
 # Returns a list of all transfers of a saving account (to current accounts).  Filters can be applied.
 # Format: list of tuple(date (YYYY-MM-DD), time (HH:MM), amount, message, current account number)
-def get_all_transfers(saving_account_number, year=None, month=None, day=None, amount=None, message=None):
-    select = 'SELECT date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number ' \
+def get_all_transfers(saving_account_number, year=None, month=None, day=None, date_time = None, amount=None, message=None):
+    select = 'SELECT transferID, date_year, date_month, date_day, date_time, amount, message, CurrentAccount_number ' \
              f'FROM Transfer WHERE SavingAccount_number = "{saving_account_number}" ' + (
                  f'AND date_year = "{year}" ' if year else '') + (
                  f'AND date_month = "{month}" ' if month else '') + (f'AND date_day = "{day}" ' if day else '') + (
                  f'AND amount = {amount} ' if amount else '') + (
+                 f'AND date_time = "{date_time}"' if date_time else '') + (
                  f'AND message LIKE "%{message}%"' if message else '') + ';'
+    cursor, _ = c()
     cursor.execute(select)
-    return list(map(lambda tup: ('{}-{}-{}'.format(*tup[0:3]), '{}:{}'.format(*tup[3].split('-')), *tup[4:len(tup)]),
-                    cursor.fetchall()))
-
+    return cursor.fetchall()
 
 # Example: Obtain all transfer of a saving account
 # print(get_all_transfers('2'))
@@ -137,6 +151,7 @@ def get_all_transfers(saving_account_number, year=None, month=None, day=None, am
 ########################################################################################################################
 
 def get_all_records(saving_account_number, year=None, month=None, day=None, amount=None, message=None):
+    cursor, _ = c()
     cursor.execute(
         f'SELECT account_number FROM Account WHERE account_number = {saving_account_number} AND account_number IN '
         '(SELECT * FROM SavingAccount);')
@@ -149,12 +164,23 @@ def get_all_records(saving_account_number, year=None, month=None, day=None, amou
 
 # check if an account is a current account or not
 def is_current_account(account_number):
+    cursor, _ = c()
     cursor.execute('SELECT account_number FROM SavingAccount;')
     return next(iter([acc[0] for acc in cursor.fetchall() if account_number == acc[0]]), None) is None
 
 
 # Example:
 # print(is_current_account("6"))
+
+#########################################################################################################################
+
+# check the currency of an account
+def check_currency(account_number=None):
+    currency = f'SELECT currency FROM Account WHERE account_number = {account_number};'
+    cursor, myconn = c()
+    cursor.execute(currency)
+    tup = next(iter(cursor.fetchall()), None)
+    return tup[0] if tup else tup
 
 ########################################################################################################################
 
@@ -165,18 +191,24 @@ def is_current_account(account_number):
 def transfer(year=None, month=None, day=None, time=None, amount=None, message=None, from_account_num=None,
              to_account_num=None):
     if get_balance(from_account_num) >= amount:
+        key = str(uuid.uuid4())[:10]
+        from_currency = check_currency(from_account_num)
+        to_currency = check_currency(to_account_num)
+        insert_amount = amount if (from_currency == to_currency) else (7.79*amount if from_currency == 'USD' else amount)
+        to_amount = amount if from_currency == to_currency else (7.79*amount if to_currency == 'HKD' else 0.13*amount)
         if is_current_account(from_account_num):
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f'"{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", "{to_account_num}", ' \
+                            f' "{key}", "{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{to_account_num}", ' \
                             f'"{from_account_num}" );'
         else:
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f'"{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", "{from_account_num}", ' \
+                            f' "{key}", "{year}", "{month}", "{day}", "{time}", "{-1 * insert_amount}", "{message}", "{from_account_num}", ' \
                             f'"{to_account_num}" );'
         update_from_account = 'UPDATE Account SET balance = balance -' \
                               f'"{amount}" WHERE account_number = "{from_account_num}";'
         update_to_account = 'UPDATE Account SET balance = balance +' \
-                            f'"{amount}" WHERE account_number = "{to_account_num}";'
+                            f'"{to_amount}" WHERE account_number = "{to_account_num}";'
+        cursor, myconn = c()
         cursor.execute(transfer_cash)
         cursor.execute(update_from_account)
         cursor.execute(update_to_account)
@@ -211,13 +243,18 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
         # therefore a randomly generated key will work better here.
         # - Hong Ming
         key = str(uuid.uuid4())[:10]
+        saving_currency = check_currency(saving_account_num)
+        current_currency = check_currency(current_account_num)
+        insert_amount = amount if saving_currency == current_currency else (7.79*amount if current_currency == 'USD' else amount)
+        saving_amount = amount if saving_currency == current_currency else (7.79*amount if saving_currency == 'HKD' else 0.13*amount)
         insert = 'INSERT INTO Transaction VALUES (' \
-                 f' "{key}", "{year}", "{month}", "{day}", "{time}", "{amount}", "{message}", ' \
-                 f'"{saving_account_num}", "{current_account_num}" ); '
+                 f' "{key}", "{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", ' \
+                 f'"{current_account_num}", "{saving_account_num}" ); '
         update_saving_account = 'UPDATE Account SET balance = balance +' \
-                                f'"{amount}" WHERE account_number = "{saving_account_num}";'
+                                f'"{saving_amount}" WHERE account_number = "{saving_account_num}";'
         update_current_account = 'UPDATE Account SET balance = balance -' \
                                  f'"{amount}" WHERE account_number = "{current_account_num}";'
+        cursor, myconn = c()
         cursor.execute(update_saving_account)
         cursor.execute(update_current_account)
         cursor.execute(insert)
@@ -241,4 +278,5 @@ def transaction(year=None, month=None, day=None, time=None, amount=None, message
 ########################################################################################################################
 
 if __name__ == "__main__":
-    transaction("2022", "11", "26", "11-05", 49, "cunt", "6", "2")
+    # transaction("2022", "11", "26", "11-05", 5, "lolol", "2", "5")
+    transfer('2021', '10', '29', '11-00', 10, 'Hello222', '6', '1')

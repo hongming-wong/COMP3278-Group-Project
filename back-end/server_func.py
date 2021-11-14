@@ -50,6 +50,8 @@ class LoginMethods():
         if self.currentUser == customerID:
             return LOGGED_IN
         elif self.currentUser is None:
+
+            cursor, _ = c()
             cursor.execute(f"SELECT * FROM customer WHERE customerID = {customerID}")
             account = cursor.fetchone()
             if account is None or len(account) == 0:
@@ -114,7 +116,7 @@ class FaceRecognition:
         parent_conn.close()
         print("Done")
         if self.customerID is False or self.name is False:
-            return False, False
+            return False, False, False, False
 
         today = datetime.datetime.today()
         now = datetime.datetime.now()
@@ -123,12 +125,13 @@ class FaceRecognition:
 
         update = "UPDATE Customer SET login_date=%s WHERE customerID=%s"
         val = (date, self.customerID)
+        cursor, myconn = c()
         cursor.execute(update, val)
         update = "UPDATE Customer SET login_time=%s WHERE customerID=%s"
         val = (current_time, self.customerID)
         cursor.execute(update, val)
         myconn.commit()
-        return self.customerID, self.name
+        return self.customerID, self.name, date, current_time
 
 if __name__ == "__main__":
     authentication()

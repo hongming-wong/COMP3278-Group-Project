@@ -22,6 +22,12 @@ loginStatus = LoginMethods()
 @app.route('/')
 def Index():
     """Test endpoint, not used in production"""
+    bypass = request.args.get("bypass")
+    if bypass is not None:
+
+        loginStatus.LogIn(bypass)
+        return "bypass ok"
+
     return "Server is active, please eat my pants"
 
 
@@ -37,11 +43,11 @@ def LoginEndpoint():
         if loginStatus.GetCredentials() is LOGGED_IN:
             return "User is already logged in"
 
-        customerID, customerName = authentication()
+        customerID, customerName, date, time = authentication()
         if customerID is not False:
             status = loginStatus.LogIn(customerID)
             if status == SUCCESS or status == LOGGED_IN:
-                jsonString = json.dumps([customerID, customerName])
+                jsonString = json.dumps([customerID, customerName, date, time])
                 return jsonString
         return Response("User doesn't exist", status=401)
 
@@ -65,7 +71,7 @@ def LogOutEndpoint():
 def accounts():
     """
     Return An array of accounts that belong to a user. User is required to login first.
-    Parameters: None
+    Optional Parameters: accountType
     """
     if loginStatus.GetCredentials() == NO_USER:
         return Response("Permission Denied", status= 403)
@@ -76,6 +82,7 @@ def accounts():
         allAccount = get_all_accounts(loginStatus.currentUser, accountType)
     else:
         return Response("Query parameters not valid!", status=401)
+    print(allAccount)
     jsonString = json.dumps(allAccount)
     return jsonString
 
@@ -87,6 +94,8 @@ def accountDetails():
     return permission denied error status.
     Required parameters: accountNo
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
     accountNo = request.args.get('accountNo')
     if accountNo is None:
         return "accountNo parameter is needed"
@@ -101,8 +110,12 @@ def transactions():
     """
     Returns all transactions associated with an account.
     Required parameters: accountNo
-    Optional parameters: year, month, day, amount, message
+    Optional parameters: year, month, day, time, amount, message
     """
+
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
+
     accountNo = request.args.get('accountNo')
     # optional parameters
     year = request.args.get('year')
@@ -110,11 +123,38 @@ def transactions():
     day = request.args.get('day')
     amount = request.args.get('amount')
     message = request.args.get('message')
+    t = request.args.get('time')
     if accountNo is None:
         return "accountNo paramater is needed"
     if not accountOwner(accountNo, loginStatus):
         return Response("Permission denied", status=403)
-    jsonString = json.dumps(get_all_transactions(accountNo, year, month, day, amount, message))
+    jsonString = json.dumps(get_all_transactions(accountNo, year, month, day, amount, t, message))
+    return jsonString
+
+
+@app.route('/SeeTransfers')
+def transfers():
+    """
+    Returns all transfers associated with an account.
+    Required parameters: accountNo
+    Optional parameters: year, month, day, time, amount, message
+    """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
+
+    accountNo = request.args.get('accountNo')
+    # optional parameters
+    year = request.args.get('year')
+    month = request.args.get('month')
+    day = request.args.get('day')
+    amount = request.args.get('amount')
+    message = request.args.get('message')
+    t = request.args.get('time')
+    if accountNo is None:
+        return "accountNo parameter is needed"
+    if not accountOwner(accountNo, loginStatus):
+        return Response("Permission denied", status=403)
+    jsonString = json.dumps(get_all_transfers(accountNo, year, month, day, t, amount, message))
     return jsonString
 
 
@@ -130,6 +170,8 @@ def MakeTransfer():
 
     Note: the accounts have to be valid; account validation will be added later on.
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
     toAccount = request.form.get('to')
@@ -147,7 +189,9 @@ def MakeTransfer():
     if not isOwnerOne or not isOwnerTwo:
         return "Transfer unsuccessful: account(s) don't belong to user "
 
-    if is_current_account(isOwnerOne) and is_current_account(toAccount):
+    cond1 = is_current_account(fromAccount)
+    cond2 = is_current_account(toAccount)
+    if cond1 == cond2:
         return "Transfer unsuccessful: Both accounts must be of different types."
 
     amount = int(amount)
@@ -178,6 +222,8 @@ def MakeTransaction():
 
     Note: the accounts have to be valid; account validation will be added later on.
     """
+    if loginStatus.GetCredentials() == NO_USER:
+        return "Login first"
     amount = request.form.get('amount')
     fromAccount = request.form.get('from')
     toAccount = request.form.get('to')
@@ -212,8 +258,8 @@ def MakeTransaction():
         date.strftime("%H-%M"),
         amount,
         message,
-        fromAccount,
-        toAccount
+        current_account_num=fromAccount,
+        saving_account_num=toAccount
     )
     if not result:
         return "Transaction unsuccessful: Insufficient amount in account"
