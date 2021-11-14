@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { AppBar } from "@mui/material";
+import { Alert, AppBar, Snackbar, TableFooter, TablePagination } from "@mui/material";
 
 import "./Home.scss";
 import {
@@ -24,7 +24,10 @@ const Home = () => {
 	const [username, setUsername] = useState("User");
 	const [allAccounts, setAllAccounts] = useState([]);
 	const [checkAccountNumber, setCheckAccountNumber] = useState(0);
+	const [checkTransfers, setCheckTransfers] = useState(0);
 	const [recentTransactions, setRecentTransactions] = useState([]);
+	const [recentTransfers, setRecentTransfers] = useState([]);
+	const [recentDetailsType, setRecentDetailsType] = useState("");
 	const [accountType, setAccountType] = useState("");
 	const [goToAccount, setGoToAccount] = useState(0);
 
@@ -32,12 +35,30 @@ const Home = () => {
 	const [accountDetails, setAccountDetails] = useState([]);
 	const [isAccountDetailsOpen, setIsAccountDetailsOpen] = useState(false);
 	const [accountTransactions, setAccountTransactions] = useState([]);
+	const [accountTransfers, setAccountTransfers] = useState([]);
+	const [transactionPage, setTransactionPage] = useState(0);
+	const [transferPage, setTransferPage] = useState(0);
+	const [transferSuccessful, setTransferSuccessful] = useState(null);
+	const [transferMessage, setTransferMessage] = useState("");
+	const [transactionSuccessful, setTransactionSuccessful] = useState(null);
+	const [transactionMessage, setTransactionMessage] = useState("");
 
 	const [isTransactionOpen, setIsTransactionOpen] = useState(false);
 	const [isTransferOpen, setIsTransferOpen] = useState(false);
-	const [isFilterOptionOpen, setIsFilterOptionOpen] = useState(false);
+	const [isTransactionFilterOptionOpen, setIsTransactionFilterOptionOpen] = useState(false);
+	const [isTransferFilterOptionOpen, setIsTransferFilterOptionOpen] = useState(false);
 
-	const [filterOption, setFilterOption] = useState([
+	const [transactionFilterOption, setTransactionFilterOption] = useState([
+		{
+			year: 0,
+			month: 0,
+			day: 0,
+			amount: 0,
+			time: "",
+			message: "",
+		},
+	]);
+	const [transferFilterOption, setTransferFilterOption] = useState([
 		{
 			year: 0,
 			month: 0,
@@ -67,18 +88,20 @@ const Home = () => {
 	useEffect(() => {
 		if (isAccountDetailsOpen) {
 			getAccountsDetails(goToAccount);
+			getAccountTransactions(goToAccount);
+			getAccountTransfers(goToAccount);
 		}
 	}, [isAccountDetailsOpen]);
 
 	// filter account transactions
 	useEffect(() => {
-		if (!isFilterOptionOpen) {
-			let year = filterOption.year;
-			let month = filterOption.month;
-			let day = filterOption.day;
-			let time = filterOption.time;
-			let amount = filterOption.amount;
-			let message = filterOption.message;
+		if (!isTransactionFilterOptionOpen) {
+			let year = transactionFilterOption.year;
+			let month = transactionFilterOption.month;
+			let day = transactionFilterOption.day;
+			let time = transactionFilterOption.time;
+			let amount = transactionFilterOption.amount;
+			let message = transactionFilterOption.message;
 
 			getAccountTransactions(
 				goToAccount,
@@ -90,7 +113,29 @@ const Home = () => {
 				message
 			);
 		}
-	}, [isFilterOptionOpen, filterOption]);
+	}, [isTransactionFilterOptionOpen, transactionFilterOption]);
+
+	// filter account transfer
+	useEffect(() => {
+		if (!isTransferFilterOptionOpen) {
+			let year = transferFilterOption.year;
+			let month = transferFilterOption.month;
+			let day = transferFilterOption.day;
+			let time = transferFilterOption.time;
+			let amount = transferFilterOption.amount;
+			let message = transferFilterOption.message;
+
+			getAccountTransfers(
+				goToAccount,
+				year,
+				month,
+				day,
+				time,
+				amount,
+				message
+			);
+		}
+	}, [isTransferFilterOptionOpen, transferFilterOption]);
 
 	useEffect(() => {
 		setUsername(window.location.pathname.substr(6));
@@ -99,7 +144,6 @@ const Home = () => {
 
 	useEffect(() => {
 		if (goToAccount !== 0) {
-			// window.location.pathname = '/account/' + username + '/' + goToAccount;
 			setIsAccountDetailsOpen(true);
 		}
 	}, [goToAccount]);
@@ -113,10 +157,21 @@ const Home = () => {
 	useEffect(() => {
 		if (checkAccountNumber !== 0) {
 			getRecentTransactions(checkAccountNumber);
+			setRecentDetailsType("Transactions");
 		} else {
 			setRecentTransactions([]);
 		}
 	}, [checkAccountNumber]);
+
+	useEffect(() => {
+		console.log("This is checkTransfers", checkTransfers);
+		if (checkTransfers !== 0) {
+			getRecentTransfers(checkTransfers);
+			setRecentDetailsType("Transfers");
+		} else {
+			setRecentTransfers([]);
+		}
+	}, [checkTransfers]);
 
 	useEffect(() => {
 		if (allAccounts.length > 0) {
@@ -153,11 +208,15 @@ const Home = () => {
 				url: "http://localhost:5000/Transfer",
 				data: f,
 			});
-			// setRandom(res.data);
-			console.log(res.data);
+			let data = res.data;
+			if (data.indexOf("unsuccessful") !== -1)
+				setTransferSuccessful(false);
+			else
+				setTransferSuccessful(true);
+			setTransferMessage(res.data);
 		} catch (err) {
-			// setRandom("");
-			console.log(err);
+			setTransferSuccessful(false);
+			setTransferMessage(err);
 		}
 	};
 
@@ -174,11 +233,15 @@ const Home = () => {
 				url: "http://localhost:5000/Transaction",
 				data: f,
 			});
-			// setRandom(res.data);
-			console.log(res.data);
+			let data = res.data;
+			if (data.indexOf("unsuccessful") !== -1)
+				setTransactionSuccessful(false);
+			else
+				setTransactionSuccessful(true);
+			setTransactionMessage(res.data);
 		} catch (err) {
-			// setRandom("");
-			console.log(err);
+			setTransactionSuccessful(false);
+			setTransactionMessage(err);
 		}
 	};
 
@@ -218,6 +281,20 @@ const Home = () => {
 		}
 	};
 
+	const getRecentTransfers = async (accountNo) => {
+		try {
+			const res = await axios("http://localhost:5000/SeeTransfers", {
+				params: {
+					accountNo: accountNo,
+				},
+			});
+			console.log(res.data);
+			setRecentTransfers(res.data);
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
 	const getAccountTransactions = async (
 		accountNo,
 		year,
@@ -246,6 +323,34 @@ const Home = () => {
 		}
 	};
 
+	const getAccountTransfers = async (
+		accountNo,
+		year,
+		month,
+		day,
+		time,
+		amount,
+		message
+	) => {
+		try {
+			const res = await axios("http://localhost:5000/SeeTransfers", {
+				params: {
+					accountNo: accountNo,
+					year: year ? year : null,
+					month: month ? month : null,
+					day: day ? day : null,
+					time: time ? time : null,
+					amount: amount ? amount : null,
+					message: message ? message : null,
+				},
+			});
+			console.log(res.data);
+			setAccountTransfers(res.data);
+		} catch (err) {
+			console.log(err);
+		}
+	};
+
 	function createAccountData(accountNo, type) {
 		return { accountNo, type };
 	}
@@ -260,7 +365,7 @@ const Home = () => {
 		return { transactionID, year, month, day, amount };
 	}
 
-	function createAccountTransactionData(
+	function createTransactionData(
 		transactionID,
 		year,
 		month,
@@ -279,8 +384,24 @@ const Home = () => {
 	const recentTransactionRows = recentTransactions?.map((data) =>
 		createRecentTransactionData(data[0], data[1], data[2], data[3], data[5])
 	);
+	const recentTransfersRows = recentTransfers?.map((data) =>
+		createRecentTransactionData(data[0], data[1], data[2], data[3], data[5])
+	);
+
 	const accountTransactionRows = accountTransactions?.map((data) =>
-		createAccountTransactionData(
+		createTransactionData(
+			data[0],
+			data[1],
+			data[2],
+			data[3],
+			data[4],
+			data[5],
+			data[6]
+		)
+	);
+
+	const accountTransferRows = accountTransfers?.map((data) =>
+		createTransactionData(
 			data[0],
 			data[1],
 			data[2],
@@ -339,6 +460,9 @@ const Home = () => {
 										<TableCell align="right" style={{ color: "white" }}>
 											Action
 										</TableCell>
+										<TableCell align="right" style={{ color: "white" }}>
+											Action
+										</TableCell>
 									</TableRow>
 								</TableHead>
 								<TableBody>
@@ -366,6 +490,14 @@ const Home = () => {
 											<TableCell align="right">
 												<Button
 													variant="outlined"
+													onClick={() => setCheckTransfers(row.accountNo)}
+												>
+													Transfers
+												</Button>
+											</TableCell>
+											<TableCell align="right">
+												<Button
+													variant="outlined"
 													onClick={() => setGoToAccount(row?.accountNo)}
 												>
 													Details
@@ -379,13 +511,13 @@ const Home = () => {
 					</Box>
 				</Box>
 				<Box className="home-right-container">
-					<h3>Recent transactions for Account: {checkAccountNumber}</h3>
+					<h3>Recent {recentDetailsType} for Account: {recentDetailsType === "Transfers" ? checkTransfers : checkAccountNumber}</h3>
 					<TableContainer component={Paper}>
 						<Table aria-label="simple table">
 							<TableHead className="appbar">
 								<TableRow>
 									<TableCell style={{ color: "white" }}>
-										Transaction No.
+										{recentDetailsType} No.
 									</TableCell>
 									<TableCell align="right" style={{ color: "white" }}>
 										Date
@@ -396,20 +528,39 @@ const Home = () => {
 								</TableRow>
 							</TableHead>
 							<TableBody>
-								{recentTransactionRows?.map((row) => (
-									<TableRow
-										key={row.transactionID}
-										sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-									>
-										<TableCell component="th" scope="row">
-											{row.transactionID}
-										</TableCell>
-										<TableCell align="right">
-											{row.year + "/" + row.month + "/" + row.day}
-										</TableCell>
-										<TableCell align="right">{row.amount}</TableCell>
-									</TableRow>
-								))}
+								{
+									recentDetailsType === "Transfers" ? (
+										recentTransfersRows?.map((row) => (
+											<TableRow
+												key={row.transactionID}
+												sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+											>
+												<TableCell component="th" scope="row">
+													{row.transactionID}
+												</TableCell>
+												<TableCell align="right">
+													{row.year + "/" + row.month + "/" + row.day}
+												</TableCell>
+												<TableCell align="right">{row.amount}</TableCell>
+											</TableRow>
+										))
+									) : (
+										recentTransactionRows?.map((row) => (
+											<TableRow
+												key={row.transactionID}
+												sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+											>
+												<TableCell component="th" scope="row">
+													{row.transactionID}
+												</TableCell>
+												<TableCell align="right">
+													{row.year + "/" + row.month + "/" + row.day}
+												</TableCell>
+												<TableCell align="right">{row.amount}</TableCell>
+											</TableRow>
+										))
+									)
+								}
 							</TableBody>
 						</Table>
 					</TableContainer>
@@ -420,7 +571,7 @@ const Home = () => {
 					onClose={() => setIsAccountDetailsOpen(false)}
 				>
 					<DialogContent className="account-transaction-dialog">
-						<>
+						<Stack spacing = {10}>
 							<Box className="account-big-container">
 								<Box className="account-left-container">
 									<Stack
@@ -435,6 +586,7 @@ const Home = () => {
 										</Box>
 									</Stack>
 									<Box className="account-transactions-container">
+										<h2>Transaction Records</h2>
 										<TableContainer component={Paper}>
 											<Table aria-label="simple table">
 												<TableHead>
@@ -443,11 +595,12 @@ const Home = () => {
 														<TableCell align="right">Date</TableCell>
 														<TableCell align="right">Time</TableCell>
 														<TableCell align="right">Amount</TableCell>
+														<TableCell align="right">Currency</TableCell>
 														<TableCell align="right">Message</TableCell>
 													</TableRow>
 												</TableHead>
 												<TableBody>
-													{accountTransactionRows?.map((row) => (
+													{accountTransactionRows?.slice(transactionPage * 5, transactionPage * 5 + 5).map((row) => (
 														<TableRow
 															key={row.transactionID}
 															sx={{
@@ -464,10 +617,22 @@ const Home = () => {
 															</TableCell>
 															<TableCell align="right">{row.time}</TableCell>
 															<TableCell align="right">{row.amount}</TableCell>
+															<TableCell align="right">{accountDetails[1]}</TableCell>
 															<TableCell align="right">{row.message}</TableCell>
 														</TableRow>
 													))}
 												</TableBody>
+												<TableFooter>
+													<TableRow>
+														<TablePagination 
+															count = {accountTransactionRows.length}
+															rowsPerPage = {5}
+															page = {transactionPage}
+															onPageChange = {(event, newPage) => setTransactionPage(newPage)}
+															rowsPerPageOptions = {[5]}
+														/>
+													</TableRow>
+												</TableFooter>
 											</Table>
 										</TableContainer>
 									</Box>
@@ -476,15 +641,9 @@ const Home = () => {
 									<Stack spacing={1}>
 										<Button
 											variant="outlined"
-											onClick={() => setIsFilterOptionOpen(true)}
+											onClick={() => setIsTransactionFilterOptionOpen(true)}
 										>
 											Filter options
-										</Button>
-										<Button
-											variant="contained"
-											onClick={() => setIsTransferOpen(true)}
-										>
-											Make transfer
 										</Button>
 										<Button
 											variant="contained"
@@ -496,20 +655,20 @@ const Home = () => {
 									</Stack>
 
 									<Dialog
-										open={isFilterOptionOpen}
-										onClose={() => setIsFilterOptionOpen(false)}
+										open={isTransactionFilterOptionOpen}
+										onClose={() => setIsTransactionFilterOptionOpen(false)}
 									>
-										<DialogTitle>Select filter option</DialogTitle>
+										<DialogTitle>Select filter option for transactions</DialogTitle>
 										<DialogContent>
 											<Stack className="dialog-content" spacing={3}>
 												<Box className="action-container">
 													<TextField
 														label="Year"
 														type="number"
-														value={filterOption.year}
+														value={transactionFilterOption.year}
 														onChange={(t) =>
-															setFilterOption({
-																...filterOption,
+															setTransactionFilterOption({
+																...transactionFilterOption,
 																year: t.target.value,
 															})
 														}
@@ -519,10 +678,10 @@ const Home = () => {
 													<TextField
 														label="Month"
 														type="number"
-														value={filterOption.month}
+														value={transactionFilterOption.month}
 														onChange={(t) =>
-															setFilterOption({
-																...filterOption,
+															setTransactionFilterOption({
+																...transactionFilterOption,
 																month: t.target.value,
 															})
 														}
@@ -532,10 +691,10 @@ const Home = () => {
 													<TextField
 														label="Day"
 														type="number"
-														value={filterOption.day}
+														value={transactionFilterOption.day}
 														onChange={(t) =>
-															setFilterOption({
-																...filterOption,
+															setTransactionFilterOption({
+																...transactionFilterOption,
 																day: t.target.value,
 															})
 														}
@@ -546,10 +705,10 @@ const Home = () => {
 														label="Time"
 														placeholder="HH-MM"
 														type="text"
-														value={filterOption.time}
+														value={transactionFilterOption.time}
 														onChange={(t) =>
-															setFilterOption({
-																...filterOption,
+															setTransactionFilterOption({
+																...transactionFilterOption,
 																time: t.target.value,
 															})
 														}
@@ -559,10 +718,10 @@ const Home = () => {
 													<TextField
 														label="Amount"
 														type="number"
-														value={filterOption.amount}
+														value={transactionFilterOption.amount}
 														onChange={(t) =>
-															setFilterOption({
-																...filterOption,
+															setTransactionFilterOption({
+																...transactionFilterOption,
 																amount: t.target.value,
 															})
 														}
@@ -571,10 +730,10 @@ const Home = () => {
 												<Box className="action-container">
 													<TextField
 														label="Message"
-														value={filterOption.message}
+														value={transactionFilterOption.message}
 														onChange={(t) =>
-															setFilterOption({
-																...filterOption,
+															setTransactionFilterOption({
+																...transactionFilterOption,
 																message: t.target.value,
 															})
 														}
@@ -582,7 +741,246 @@ const Home = () => {
 												</Box>
 												<Button
 													variant="outlined"
-													onClick={() => setIsFilterOptionOpen(false)}
+													onClick={() => setIsTransactionFilterOptionOpen(false)}
+												>
+													Confirm
+												</Button>
+											</Stack>
+										</DialogContent>
+									</Dialog>
+
+									<Snackbar
+										open={transactionSuccessful !== null}
+										autoHideDuration={5000}
+										onClose={() => setTransactionSuccessful(null)}
+									>
+										<Alert severity={transactionSuccessful !== null ? transactionSuccessful ? "success" : "error" : ""}>
+											{transactionMessage}
+										</Alert>
+									</Snackbar>
+
+									<Dialog
+										open={isTransactionOpen}
+										onClose={() => setIsTransactionOpen(false)}
+									>
+										<DialogTitle>Make a transaction</DialogTitle>
+										<DialogContent>
+											<form onSubmit={handleTransactionSubmit}>
+												<Stack className="dialog-content" spacing={3}>
+													<TextField
+														label="From"
+														required
+														type="number"
+														value={transactionDetails.from}
+														onChange={(t) =>
+															setTransactionDetails({
+																...transactionDetails,
+																from: t.target.value,
+															})
+														}
+													/>
+													<TextField
+														type="number"
+														required
+														label="To"
+														value={transactionDetails.to}
+														onChange={(t) =>
+															setTransactionDetails({
+																...transactionDetails,
+																to: t.target.value,
+															})
+														}
+													/>
+													<TextField
+														label="Amount"
+														required
+														type="number"
+														value={transactionDetails.amount}
+														onChange={(t) =>
+															setTransactionDetails({
+																...transactionDetails,
+																amount: t.target.value,
+															})
+														}
+													/>
+													<TextField
+														label="Message"
+														type="text"
+														value={transactionDetails.message}
+														onChange={(t) =>
+															setTransactionDetails({
+																...transactionDetails,
+																message: t.target.value,
+															})
+														}
+													/>
+													<Button variant="outined" type="submit">
+														Submit
+													</Button>
+												</Stack>
+											</form>
+										</DialogContent>
+									</Dialog>
+								</Stack>
+							</Box>
+							<Box className="account-big-container">
+								<Box className="account-left-container">
+									<h2>Transfer Records</h2>
+									<Box className="account-transactions-container">
+										<TableContainer component={Paper}>
+											<Table aria-label="simple table">
+												<TableHead>
+													<TableRow>
+														<TableCell>Transfer No.</TableCell>
+														<TableCell align="right">Date</TableCell>
+														<TableCell align="right">Time</TableCell>
+														<TableCell align="right">Amount</TableCell>
+														<TableCell align="right">Currency</TableCell>
+														<TableCell align="right">Message</TableCell>
+													</TableRow>
+												</TableHead>
+												<TableBody>
+												{accountTransferRows?.slice(transferPage * 5, transferPage * 5 + 5).map((row) => (
+														<TableRow
+															key={row.transactionID}
+															sx={{
+																"&:last-child td, &:last-child th": {
+																	border: 0,
+																},
+															}}
+														>
+															<TableCell component="th" scope="row">
+																{row.transactionID}
+															</TableCell>
+															<TableCell align="right">
+																{row.year + "/" + row.month + "/" + row.day}
+															</TableCell>
+															<TableCell align="right">{row.time}</TableCell>
+															<TableCell align="right">{row.amount}</TableCell>
+															<TableCell align="right">{accountDetails[1]}</TableCell>
+															<TableCell align="right">{row.message}</TableCell>
+														</TableRow>
+													))}
+												</TableBody>
+												<TableFooter>
+													<TableRow>
+														<TablePagination 
+															count = {accountTransferRows.length}
+															rowsPerPage = {5}
+															page = {transferPage}
+															onPageChange = {(event, newPage) => setTransferPage(newPage)}
+															rowsPerPageOptions = {[5]}
+														/>
+													</TableRow>
+												</TableFooter>
+											</Table>
+										</TableContainer>
+									</Box>
+								</Box>
+								<Stack className="account-right-container">
+									<Stack spacing={1}>
+										<Button
+											variant="outlined"
+											onClick={() => setIsTransferFilterOptionOpen(true)}
+										>
+											Filter options
+										</Button>
+										<Button
+											variant="contained"
+											onClick={() => setIsTransferOpen(true)}
+										>
+											Make transfer
+										</Button>
+									</Stack>
+
+									<Dialog
+										open={isTransferFilterOptionOpen}
+										onClose={() => setIsTransferFilterOptionOpen(false)}
+									>
+										<DialogTitle>Select filter option for transfer</DialogTitle>
+										<DialogContent>
+											<Stack className="dialog-content" spacing={3}>
+												<Box className="action-container">
+													<TextField
+														label="Year"
+														type="number"
+														value={transferFilterOption.year}
+														onChange={(t) =>
+															setIsTransferFilterOptionOpen({
+																...transferFilterOption,
+																year: t.target.value,
+															})
+														}
+													/>
+												</Box>
+												<Box className="action-container">
+													<TextField
+														label="Month"
+														type="number"
+														value={transferFilterOption.month}
+														onChange={(t) =>
+															setIsTransferFilterOptionOpen({
+																...transferFilterOption,
+																month: t.target.value,
+															})
+														}
+													/>
+												</Box>
+												<Box className="action-container">
+													<TextField
+														label="Day"
+														type="number"
+														value={transferFilterOption.day}
+														onChange={(t) =>
+															setIsTransferFilterOptionOpen({
+																...transferFilterOption,
+																day: t.target.value,
+															})
+														}
+													/>
+												</Box>
+												<Box className="action-container">
+													<TextField
+														label="Time"
+														placeholder="HH-MM"
+														type="text"
+														value={transferFilterOption.time}
+														onChange={(t) =>
+															setIsTransferFilterOptionOpen({
+																...transferFilterOption,
+																time: t.target.value,
+															})
+														}
+													/>
+												</Box>
+												<Box className="action-container">
+													<TextField
+														label="Amount"
+														type="number"
+														value={transferFilterOption.amount}
+														onChange={(t) =>
+															setIsTransferFilterOptionOpen({
+																...transferFilterOption,
+																amount: t.target.value,
+															})
+														}
+													/>
+												</Box>
+												<Box className="action-container">
+													<TextField
+														label="Message"
+														value={transferFilterOption.message}
+														onChange={(t) =>
+															setIsTransferFilterOptionOpen({
+																...transferFilterOption,
+																message: t.target.value,
+															})
+														}
+													/>
+												</Box>
+												<Button
+													variant="outlined"
+													onClick={() => setIsTransferFilterOptionOpen(false)}
 												>
 													Confirm
 												</Button>
@@ -652,72 +1050,29 @@ const Home = () => {
 											</form>
 										</DialogContent>
 									</Dialog>
-
-									<Dialog
-										open={isTransactionOpen}
-										onClose={() => setIsTransactionOpen(false)}
-									>
-										<DialogTitle>Make a transaction</DialogTitle>
-										<DialogContent>
-											<form onSubmit={handleTransactionSubmit}>
-												<Stack className="dialog-content" spacing={3}>
-													<TextField
-														label="From"
-														required
-														type="number"
-														value={transactionDetails.from}
-														onChange={(t) =>
-															setTransactionDetails({
-																...transactionDetails,
-																from: t.target.value,
-															})
-														}
-													/>
-													<TextField
-														type="number"
-														required
-														label="To"
-														value={transactionDetails.to}
-														onChange={(t) =>
-															setTransactionDetails({
-																...transactionDetails,
-																to: t.target.value,
-															})
-														}
-													/>
-													<TextField
-														label="Amount"
-														required
-														type="number"
-														value={transactionDetails.amount}
-														onChange={(t) =>
-															setTransactionDetails({
-																...transactionDetails,
-																amount: t.target.value,
-															})
-														}
-													/>
-													<TextField
-														label="Message"
-														type="text"
-														value={transactionDetails.message}
-														onChange={(t) =>
-															setTransactionDetails({
-																...transactionDetails,
-																message: t.target.value,
-															})
-														}
-													/>
-													<Button variant="outined" type="submit">
-														Submit
-													</Button>
-												</Stack>
-											</form>
-										</DialogContent>
-									</Dialog>
 								</Stack>
 							</Box>
-						</>
+
+							<Snackbar
+								open={transferSuccessful !== null}
+								autoHideDuration={5000}
+								onClose={() => setTransferSuccessful(null)}
+							>
+								<Alert severity={transferSuccessful !== null ? transferSuccessful ? "success" : "error" : ""}>
+									{transferMessage}
+								</Alert>
+							</Snackbar>
+
+							<Snackbar
+								open={transactionSuccessful !== null}
+								autoHideDuration={5000}
+								onClose={() => setTransactionSuccessful(null)}
+							>
+								<Alert severity={transactionSuccessful !== null ? transactionSuccessful ? "success" : "error" : ""}>
+									{transactionMessage}
+								</Alert>
+							</Snackbar>
+						</Stack>
 					</DialogContent>
 				</Dialog>
 			</Box>
