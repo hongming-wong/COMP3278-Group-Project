@@ -83,6 +83,8 @@ INSERT INTO Account (account_number, currency, balance, customerID) VALUES ('5',
 INSERT INTO Account (account_number, currency, balance, customerID) VALUES ('6', 'USD', 500, '4');
 INSERT INTO Account (account_number, currency, balance, customerID) VALUES ('7', 'HKD', 500, '6');
 
+INSERT INTO Account (account_number, currency, balance, customerID) VALUES ('8', 'USD', 500, '1');
+
 INSERT INTO SavingAccount (account_number) VALUES ('1');
 INSERT INTO SavingAccount (account_number) VALUES ('2');
 INSERT INTO SavingAccount (account_number) VALUES ('3');
@@ -91,6 +93,7 @@ INSERT INTO SavingAccount (account_number) VALUES ('4');
 INSERT INTO CurrentAccount (account_number) VALUES ('5');
 INSERT INTO CurrentAccount (account_number) VALUES ('6');
 INSERT INTO CurrentAccount (account_number) VALUES ('7');
+INSERT INTO CurrentAccount (account_number) VALUES ('8');
 
 INSERT INTO Record (recordID, date_year, date_month, date_day, date_time, amount, account_number) VALUES ('1', '2021', '10', '26', '10-00', 50, '1');
 INSERT INTO Record (recordID, date_year, date_month, date_day, date_time, amount, account_number) VALUES ('2', '2021', '10', '26', '10-01', 20, '1');
