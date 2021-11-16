@@ -202,7 +202,7 @@ def transfer(year=None, month=None, day=None, time=None, amount=None, message=No
                             f'"{from_account_num}" );'
         else:
             transfer_cash = 'INSERT INTO Transfer VALUES ( ' \
-                            f' "{key}", "{year}", "{month}", "{day}", "{time}", "{insert_amount}", "{message}", "{from_account_num}", ' \
+                            f' "{key}", "{year}", "{month}", "{day}", "{time}", "{-1 * insert_amount}", "{message}", "{from_account_num}", ' \
                             f'"{to_account_num}" );'
         update_from_account = 'UPDATE Account SET balance = balance -' \
                               f'"{amount}" WHERE account_number = "{from_account_num}";'
