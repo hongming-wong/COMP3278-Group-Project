@@ -12,9 +12,12 @@ FRONT-END: React <br/>
 BACK-END: Python Flask <br/>
 DBMS: MYSQL <br/>
 
-To run the front-end:
-1. Install the most recent version of NodeJS
-2. CD into front-end and type "npm start"
+**SQL code can be found at back-end/dummy_data.sql**
+
+To run front-end:
+1. CD into front-end and type "yarn install"
+2. Then, type "yarn start"
+
 
 To run the back-end:
 1. Remember to check if you have flask installed. If not, run:
