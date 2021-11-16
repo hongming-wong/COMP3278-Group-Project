@@ -12,7 +12,7 @@ FRONT-END: React <br/>
 BACK-END: Python Flask <br/>
 DBMS: MYSQL <br/>
 
-**SQL code can be found at back-end/dummy_data.sql**
+**SQL code can be found at sql-code.sql**
 
 To run front-end:
 1. CD into front-end and type "yarn install"
