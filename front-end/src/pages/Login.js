@@ -13,8 +13,6 @@ import axios from "axios";
 import AppContext from "../AppContext";
 
 const Login = () => {
-	const [data, setData] = useState("Server is down");
-	// const [random, setRandom] = useState("No Data");
 	const [currentUser, setCurrentUser] = useState("No user");
 	const [userCredentials, setUserCredentials] = useState([]);
 	const [isCheckCredentials, setIsCheckCredentials] = useState(false);
@@ -31,7 +29,6 @@ const Login = () => {
 		const getData = async () => {
 			try {
 				const res = await axios.get("http://localhost:5000/");
-				setData(res.data);
 			} catch (err) {
 				console.log(err);
 			}
@@ -44,7 +41,6 @@ const Login = () => {
 			const res = await axios.post("http://localhost:5000/Login", {
 				username: "dummy",
 			});
-			console.log(res.data);
 			setUserCredentials(res.data);
 			setCurrentUser(res.data[1]);
 		} catch (err) {
@@ -58,33 +54,11 @@ const Login = () => {
 			const res = await axios.post("http://localhost:5000/Logout", {
 				username: "dummy",
 			});
-			console.log(res.data);
 			setCurrentUser("No user");
 		} catch (err) {
 			console.log(err);
 		}
 	};
-
-	// const handleSubmit = async (event) => {
-	//     event.preventDefault();
-	//     var f = new FormData();
-	//     f.append("from", from);
-	//     f.append("to", to);
-	//     f.append("message", msg);
-	//     f.append("amount", amount);
-	//     try {
-	//         const res = await axios({
-	//             method: "post",
-	//             url: "http://localhost:5000/Transfer",
-	//             data: f,
-	//         });
-	//         setRandom(res.data);
-	//         console.log(res.data);
-	//     } catch (err) {
-	//         setRandom("");
-	//         console.log(err);
-	//     }
-	// };
 
 	return (
 		<div className="container">
@@ -121,7 +95,7 @@ const Login = () => {
 					>
 						Go to home
 					</Button>
-					{/* <Button
+					<Button
 						variant="outlined"
 						onClick={() => {
 							setIsCheckCredentials(false);
@@ -129,7 +103,7 @@ const Login = () => {
 						}}
 					>
 						Logout
-					</Button> */}
+					</Button>
 				</DialogActions>
 			</Dialog>
 		</div>

@@ -164,7 +164,6 @@ const Home = () => {
 	}, [checkAccountNumber]);
 
 	useEffect(() => {
-		console.log("This is checkTransfers", checkTransfers);
 		if (checkTransfers !== 0) {
 			getRecentTransfers(checkTransfers);
 			setRecentDetailsType("Transfers");
@@ -189,7 +188,6 @@ const Home = () => {
 				},
 			});
 			setAccountDetails(res.data);
-			console.log(res.data);
 		} catch (err) {
 			console.log(err);
 		}
@@ -260,7 +258,6 @@ const Home = () => {
 					accountType: accountType,
 				},
 			});
-			console.log(res.data);
 			setAllAccounts(res.data);
 		} catch (err) {
 			console.log(err);
@@ -274,7 +271,6 @@ const Home = () => {
 					accountNo: accountNo,
 				},
 			});
-			console.log(res.data);
 			setRecentTransactions(res.data);
 		} catch (err) {
 			console.log(err);
@@ -288,7 +284,6 @@ const Home = () => {
 					accountNo: accountNo,
 				},
 			});
-			console.log(res.data);
 			setRecentTransfers(res.data);
 		} catch (err) {
 			console.log(err);
@@ -316,7 +311,6 @@ const Home = () => {
 					message: message ? message : null,
 				},
 			});
-			console.log(res.data);
 			setAccountTransactions(res.data);
 		} catch (err) {
 			console.log(err);
@@ -344,7 +338,6 @@ const Home = () => {
 					message: message ? message : null,
 				},
 			});
-			console.log(res.data);
 			setAccountTransfers(res.data);
 		} catch (err) {
 			console.log(err);
@@ -475,9 +468,9 @@ const Home = () => {
 												{row?.accountNo}
 											</TableCell>
 											<TableCell align="right">
-												{row?.type
-													? row.type.toUpperCase()
-													: accountType.toUpperCase()}
+												{accountType.length > 0 
+													? accountType.toUpperCase()
+													: row.type.toUpperCase()}
 											</TableCell>
 											<TableCell align="right">
 												<Button
@@ -906,7 +899,7 @@ const Home = () => {
 														type="number"
 														value={transferFilterOption.year}
 														onChange={(t) =>
-															setIsTransferFilterOptionOpen({
+															setTransferFilterOption({
 																...transferFilterOption,
 																year: t.target.value,
 															})
@@ -919,7 +912,7 @@ const Home = () => {
 														type="number"
 														value={transferFilterOption.month}
 														onChange={(t) =>
-															setIsTransferFilterOptionOpen({
+															setTransferFilterOption({
 																...transferFilterOption,
 																month: t.target.value,
 															})
@@ -932,7 +925,7 @@ const Home = () => {
 														type="number"
 														value={transferFilterOption.day}
 														onChange={(t) =>
-															setIsTransferFilterOptionOpen({
+															setTransferFilterOption({
 																...transferFilterOption,
 																day: t.target.value,
 															})
@@ -946,7 +939,7 @@ const Home = () => {
 														type="text"
 														value={transferFilterOption.time}
 														onChange={(t) =>
-															setIsTransferFilterOptionOpen({
+															setTransferFilterOption({
 																...transferFilterOption,
 																time: t.target.value,
 															})
@@ -959,7 +952,7 @@ const Home = () => {
 														type="number"
 														value={transferFilterOption.amount}
 														onChange={(t) =>
-															setIsTransferFilterOptionOpen({
+															setTransferFilterOption({
 																...transferFilterOption,
 																amount: t.target.value,
 															})
@@ -971,7 +964,7 @@ const Home = () => {
 														label="Message"
 														value={transferFilterOption.message}
 														onChange={(t) =>
-															setIsTransferFilterOptionOpen({
+															setTransferFilterOption({
 																...transferFilterOption,
 																message: t.target.value,
 															})
